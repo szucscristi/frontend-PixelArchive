@@ -24,15 +24,16 @@
         </div>
       </div>
 
-      <!-- Grid de jocuri -->
+      <!-- Grid de jocuri cu link către detalii -->
       <div class="row g-3">
-        <div
+        <router-link
           v-for="game in games"
           :key="game.id"
-          class="col-6 col-md-4 col-lg-3"
+          :to="{ name: 'game-details', params: { id: game.id } }"
+          class="col-6 col-md-4 col-lg-3 text-decoration-none"
         >
           <GameCard :game="game" />
-        </div>
+        </router-link>
       </div>
 
       <!-- Loading more… -->

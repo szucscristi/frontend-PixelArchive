@@ -12,6 +12,7 @@ import ItemDetail from './components/pages/ItemDetail.vue';
 import ItemsOverview from './components/pages/ItemsOverview.vue';
 */
 import TrendingGames from './components/pages/TrendingGames.vue';
+import GameDetails from './components/pages/GameDetails.vue';
 
 axios.defaults.baseURL = process.env.VUE_APP_API_BASE_URL;
 
@@ -24,9 +25,8 @@ const router = createRouter({
         { path: '/edit/:id', component: UpdateItem},
         { path: '/detail/:id', component: ItemDetail}
          */
-        {
-            path: '/', component: TrendingGames
-        }
+        { path: '/', component: TrendingGames},
+        { path: '/games/:id', name: 'game-details', component: GameDetails, props: true }
     ]
 });
 
