@@ -13,6 +13,9 @@ import ItemsOverview from './components/pages/ItemsOverview.vue';
 */
 import TrendingGames from './components/pages/TrendingGames.vue';
 import GameDetails from './components/pages/GameDetails.vue';
+import UserLogin from './components/pages/UserLogin.vue';
+import UserProfile from './components/pages/UserProfile.vue';
+import UserRegister from './components/pages/UserRegister.vue';
 
 axios.defaults.baseURL = process.env.VUE_APP_API_BASE_URL;
 
@@ -26,7 +29,10 @@ const router = createRouter({
         { path: '/detail/:id', component: ItemDetail}
          */
         { path: '/', component: TrendingGames},
-        { path: '/games/:id', name: 'game-details', component: GameDetails, props: true }
+        { path: '/games/:id', name: 'game-details', component: GameDetails, props: true },
+        { path: '/login', component: UserLogin },
+        { path: '/register', component: UserRegister },
+        { path: '/profile', component: UserProfile }
     ]
 });
 
