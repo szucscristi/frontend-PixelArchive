@@ -143,7 +143,6 @@
                   v-model="detailForm.backgroundImage"
                   type="url"
                   class="form-control bg-secondary text-light"
-                  placeholder="https://example.com/cover.jpg"
                   required
                 />
               </div>
@@ -240,7 +239,7 @@ export default {
         released:                   '',
         rating:                     null,
         ratingTop:                  null,
-        backgroundImage:            '',  // URL principal
+        backgroundImage:            '',
         backgroundImageAdditional:  '',
         platformsJson:              '[]'
       },
@@ -255,13 +254,10 @@ export default {
     isAdmin() { return isAdmin(); }
   },
   methods: {
-    // autentificare
     doLogout() {
       logout();
       this.$router.push('/login');
     },
-
-    // jocuri
     fetchAdminGames() {
       api.get('/games/trending', { params:{ size:100,page:1,search:this.adminSearch.trim()||null }})
         .then(res=>{
@@ -311,9 +307,8 @@ export default {
         }).catch(err=>this.showAlert('Error: '+(err.response?.data?.message||err.message),'danger'));
     },
 
-    // detalii joc
+    // ---------- DETAILS CRUD ----------
     openDetailModal(game) {
-      // inițializez form
       this.detailForm = {
         id:                         game.id,
         name:                       game.name,
@@ -327,31 +322,30 @@ export default {
         platformsJson:              '[]'
       };
       api.get(`/games/${game.id}/detail`)
-        .then(res=>{
+        .then(res => {
           const d = res.data;
           this.detailForm = {
             id:                         d.id,
             name:                       d.name,
-            description:                d.description||'',
+            description:                d.description    || '',
             metacritic:                 d.metacritic,
             released:                   d.released,
             rating:                     d.rating,
-            ratingTop:                  d.ratingTop,
-            backgroundImage:            d.backgroundImage||'',
-            backgroundImageAdditional:  d.backgroundImageAdditional||'',
-            platformsJson:              JSON.stringify(d.platforms,null,2)
+            ratingTop:                  d.rating_top,
+            backgroundImage:            d.background_image           || '',
+            backgroundImageAdditional:  d.background_image_additional || '',
+            platformsJson:              JSON.stringify(d.platforms, null, 2)
           };
           this.detailExists = true;
         })
-        .catch(()=>{
+        .catch(() => {
           this.detailExists = false;
         })
-        .finally(()=>{
+        .finally(() => {
           this.showDetailModal = true;
         });
     },
     saveDetail() {
-      // construiesc payload snake_case
       const d = this.detailForm;
       const payload = {
         id:                         d.id,
@@ -371,13 +365,13 @@ export default {
 
       call.then(()=>{
         this.showAlert(this.detailExists?'Details updated.':'Details created.','success');
-        // actualizez form cu valorile trimise
+        // Reţin URL-urile în formular
         this.detailForm.backgroundImage           = payload.background_image;
         this.detailForm.backgroundImageAdditional = payload.background_image_additional;
-        this.detailForm.platformsJson             = JSON.stringify(payload.platforms,null,2);
+        this.detailForm.platformsJson             = JSON.stringify(payload.platforms, null, 2);
         this.detailExists = true;
       })
-      .catch(err=>{
+      .catch(err => {
         this.showAlert('Error: '+(err.response?.data?.message||err.message),'danger');
       });
     },
@@ -387,12 +381,11 @@ export default {
           this.showAlert('Details deleted.','success');
           this.showDetailModal = false;
         })
-        .catch(err=>{
+        .catch(err => {
           this.showAlert('Error: '+(err.response?.data?.message||err.message),'danger');
         });
     },
 
-    // helper alert
     showAlert(msg,type='success') {
       this.alertMessage = msg;
       this.alertType    = type;
