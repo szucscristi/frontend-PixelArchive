@@ -1,10 +1,19 @@
-<!-- src/components/pages/TrendingGames.vue -->
 <template>
-  <BaseLayout
-    v-model:searchTerm="searchTerm"
-    @reset-global="goHome"
-  >
+  <BaseLayout>
     <div class="trending-section py-3">
+
+      <!-- Search Bar (numai aici) -->
+      <div class="search-container px-4 py-2 bg-dark mb-4">
+        <input
+          v-model="searchTerm"
+          @input="onSearchChange"
+          type="text"
+          class="form-control form-control-lg bg-secondary text-light border-0 mx-auto"
+          placeholder="Search the archive…"
+          style="max-width:600px;"
+        />
+      </div>
+
       <!-- Header: Sort dropdown -->
       <div class="d-flex align-items-center mb-5">
         <div class="flex-grow-1"></div>
@@ -25,7 +34,7 @@
         </div>
       </div>
 
-      <!-- Grid de jocuri cu link către detalii -->
+      <!-- Grid de jocuri -->
       <div class="row g-3">
         <router-link
           v-for="game in games"
@@ -52,9 +61,9 @@
 </template>
 
 <script>
-import BaseLayout from './BaseLayout.vue';
-import GameCard    from './GameCard.vue';
-import api         from '@/api';
+import BaseLayout          from './BaseLayout.vue';
+import GameCard             from './GameCard.vue';
+import api                  from '@/api';
 import { isLoggedIn, getUsername } from '@/auth';
 
 export default {
@@ -74,7 +83,6 @@ export default {
     };
   },
   methods: {
-    // fetch initial page or next pages
     async fetchGames() {
       if (this.loading || this.endReached) return;
       this.loading = true;
@@ -98,35 +106,20 @@ export default {
       }
     },
 
-    // infinite scroll
-    onScroll() {
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
-        this.fetchGames();
-      }
-    },
-
-    // reset to home state (clears search & sort)
-    goHome() {
-      this.searchTerm = '';
-      this.ordering   = '';
-      this.games      = [];
-      this.page       = 1;
-      this.endReached = false;
-      this.fetchGames();
-      this.fetchUserLists();
-    },
-
-    // when sort dropdown changes
     onSortChange() {
-      // same logic as searchTerm watcher
+      this.resetList();
+    },
+    onSearchChange() {
+      this.resetList();
+    },
+    resetList() {
       this.games      = [];
       this.page       = 1;
       this.endReached = false;
-      history.replaceState(null, '', this._buildUrl());
+      // actualizează URL (optional)
+      history.replaceState(null,'',this._buildUrl());
       this.fetchGames();
     },
-
-    // build URL query string
     _buildUrl() {
       const p = new URLSearchParams();
       if (this.searchTerm) p.set('search', this.searchTerm);
@@ -134,70 +127,58 @@ export default {
       return p.toString() ? `?${p.toString()}` : window.location.pathname;
     },
 
-    // load user's wishlist & completed lists
     async fetchUserLists() {
       if (!isLoggedIn()) return;
       const user = getUsername();
       try {
         const [ws, cs] = await Promise.all([
-          api.get(`/users/${user}/games`, { params: { status: 'WISHLIST' } }),
-          api.get(`/users/${user}/games`, { params: { status: 'COMPLETED' } })
+          api.get(`/users/${user}/games`, { params:{ status: 'WISHLIST' } }),
+          api.get(`/users/${user}/games`, { params:{ status: 'COMPLETED' } })
         ]);
-        this.wishlistIds  = ws.data.map(g => g.id);
-        this.completedIds = cs.data.map(g => g.id);
+        this.wishlistIds  = ws.data.map(g=>g.id);
+        this.completedIds = cs.data.map(g=>g.id);
       } catch (e) {
         console.error(e);
       }
     },
 
-    // toggle in/out of wishlist
     async toggleWishlist(game) {
       if (!isLoggedIn()) return;
       const user   = getUsername();
       const inList = this.wishlistIds.includes(game.id);
       try {
         if (inList) {
-          await api.delete(`/users/${user}/games/${game.id}`, { params: { status: 'WISHLIST' } });
+          await api.delete(`/users/${user}/games/${game.id}`, { params:{ status:'WISHLIST' }});
         } else {
-          await api.post(`/users/${user}/games`, { username: user, gameId: game.id, status: 'WISHLIST' });
+          await api.post(`/users/${user}/games`, { username:user, gameId:game.id, status:'WISHLIST' });
         }
         await this.fetchUserLists();
-      } catch (e) {
-        console.error(e);
-      }
+      } catch(e){ console.error(e); }
     },
 
-    // toggle in/out of completed
     async toggleCompleted(game) {
       if (!isLoggedIn()) return;
       const user   = getUsername();
       const inList = this.completedIds.includes(game.id);
       try {
         if (inList) {
-          await api.delete(`/users/${user}/games/${game.id}`, { params: { status: 'COMPLETED' } });
+          await api.delete(`/users/${user}/games/${game.id}`, { params:{ status:'COMPLETED' }});
         } else {
-          await api.post(`/users/${user}/games`, { username: user, gameId: game.id, status: 'COMPLETED' });
+          await api.post(`/users/${user}/games`, { username:user, gameId:game.id, status:'COMPLETED' });
         }
         await this.fetchUserLists();
-      } catch (e) {
-        console.error(e);
+      } catch(e){ console.error(e); }
+    },
+
+    onScroll() {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
+        this.fetchGames();
       }
     }
   },
 
-  watch: {
-    // when the global searchTerm updates
-    searchTerm() {
-      this.games      = [];
-      this.page       = 1;
-      this.endReached = false;
-      history.replaceState(null, '', this._buildUrl());
-      this.fetchGames();
-    }
-  },
-
   mounted() {
-    // initialize from URL params
+    // init din URL
     const p = new URLSearchParams(window.location.search);
     this.searchTerm = p.get('search')   || '';
     this.ordering   = p.get('ordering') || '';
@@ -206,7 +187,6 @@ export default {
     this.fetchUserLists();
     window.addEventListener('scroll', this.onScroll);
   },
-
   beforeUnmount() {
     window.removeEventListener('scroll', this.onScroll);
   }
@@ -217,5 +197,10 @@ export default {
 .trending-section {
   padding-top: 1rem;
   padding-bottom: 2rem;
+}
+
+/* Bara de căutare locală */
+.search-container {
+  border-bottom: 1px solid #333;
 }
 </style>

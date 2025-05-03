@@ -1,20 +1,19 @@
+<!-- src/components/pages/GameDetails.vue -->
 <template>
   <BaseLayout>
     <!-- Loading spinner -->
-    <div v-if="loading"
-         class="d-flex justify-content-center align-items-center"
-         style="height: 60vh;">
+    <div
+      v-if="loading"
+      class="d-flex justify-content-center align-items-center"
+      style="height: 60vh;"
+    >
       <div class="spinner-border text-light" role="status">
         <span class="visually-hidden">Loading…</span>
       </div>
     </div>
 
     <!-- Game details -->
-    <div v-else-if="game" class="text-light">
-      <router-link to="/" class="btn btn-outline-light mb-4">
-        ← Back to Trending
-      </router-link>
-
+    <div v-else-if="game" class="text-light mt-5">
       <div class="row gx-4">
         <!-- Main cover column -->
         <div class="col-12 col-md-4 mb-4 mb-md-0">
@@ -31,7 +30,9 @@
           <h1 class="mb-3">{{ game.name }}</h1>
 
           <div class="mb-3">
-            <span class="badge bg-primary me-2">Released: {{ game.released }}</span>
+            <span class="badge bg-primary me-2">
+              Released: {{ game.released }}
+            </span>
             <span class="badge bg-success me-2">
               Rating: {{ game.rating }} / {{ game.rating_top }}
             </span>
@@ -55,7 +56,10 @@
           </ul>
 
           <!-- Additional image, afișată sub platforms -->
-          <div v-if="game.background_image_additional" class="mt-3">
+          <div
+            v-if="game.background_image_additional"
+            class="mt-3"
+          >
             <h5 class="mb-2">Additional Image</h5>
             <img
               :src="game.background_image_additional"
@@ -85,7 +89,7 @@ export default {
   components: { BaseLayout },
   data() {
     return {
-      game: null,
+      game:    null,
       loading: true
     };
   },
