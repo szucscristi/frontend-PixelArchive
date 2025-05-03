@@ -1,16 +1,17 @@
+<!-- src/components/pages/TrendingGames.vue -->
 <template>
   <BaseLayout
     v-model:searchTerm="searchTerm"
     @reset-global="goHome"
   >
     <div class="trending-section py-3">
-      <!-- Sort dropdown -->
+      <!-- Header: Sort dropdown -->
       <div class="d-flex align-items-center mb-5">
         <div class="flex-grow-1"></div>
-        <div style="width:20%" class="d-flex justify-content-end">
+        <div class="flex-shrink-1 d-flex justify-content-end" style="width:20%">
           <select
             v-model="ordering"
-            @change="onInput"
+            @change="onSortChange"
             class="form-select form-select-sm bg-secondary text-light border-0"
             style="width:120px;"
           >
@@ -32,7 +33,13 @@
           :to="{ name: 'game-details', params: { id: game.id } }"
           class="col-6 col-md-4 col-lg-3 text-decoration-none"
         >
-          <GameCard :game="game" />
+          <GameCard
+            :game="game"
+            :is-wishlisted="wishlistIds.includes(game.id)"
+            :is-completed="completedIds.includes(game.id)"
+            @toggle-wishlist="toggleWishlist"
+            @toggle-completed="toggleCompleted"
+          />
         </router-link>
       </div>
 
@@ -45,89 +52,39 @@
 </template>
 
 <script>
-import axios from 'axios';
 import BaseLayout from './BaseLayout.vue';
-import GameCard from './GameCard.vue';
-
-const api = axios.create({ baseURL: 'http://localhost:8081/api' });
-
-function debounce(fn, delay) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  };
-}
+import GameCard    from './GameCard.vue';
+import api         from '@/api';
+import { isLoggedIn, getUsername } from '@/auth';
 
 export default {
   name: 'TrendingGames',
   components: { BaseLayout, GameCard },
   data() {
     return {
-      games: [], page:1, pageSize:12,
-      ordering:'', searchTerm:'',
-      loading:false, endReached:false,
-      debouncedFetch:null
+      games:        [],
+      page:         1,
+      pageSize:     12,
+      ordering:     '',
+      searchTerm:   '',
+      loading:      false,
+      endReached:   false,
+      wishlistIds:  [],
+      completedIds: []
     };
   },
-  mounted() {
-    // preluăm inițial search/order din URL
-    const p = new URLSearchParams(window.location.search);
-    this.searchTerm = p.get('search')   || '';
-    this.ordering   = p.get('ordering') || '';
-
-    this.debouncedFetch = debounce(() => this.fetchGames(), 300);
-    this.resetAndFetch(false);
-
-    window.addEventListener('popstate', () => {
-      const q = new URLSearchParams(window.location.search);
-      this.searchTerm = q.get('search')   || '';
-      this.ordering   = q.get('ordering') || '';
-      this.resetAndFetch(false);
-    });
-    window.addEventListener('scroll', this.onScroll);
-  },
-  beforeUnmount() {
-    window.removeEventListener('popstate', this.onPopState);
-    window.removeEventListener('scroll', this.onScroll);
-  },
-  watch: {
-    // când searchTerm vine din BaseLayout
-    searchTerm() {
-      this.onInput();
-    }
-  },
   methods: {
-    goHome() {
-      // reset local
-      this.searchTerm = '';
-      this.ordering   = '';
-      this.resetAndFetch();
-    },
-    onInput() {
-      this.games = []; this.page = 1; this.endReached = false;
-      // actualizăm URL
-      const params = new URLSearchParams();
-      if (this.searchTerm) params.set('search', this.searchTerm);
-      if (this.ordering)   params.set('ordering', this.ordering);
-      history.pushState(null,'', params.toString() ? `?${params}` : window.location.pathname);
-
-      this.debouncedFetch();
-    },
-    resetAndFetch(clear = true) {
-      if (clear) { this.games = []; this.page = 1; this.endReached = false; }
-      this.fetchGames();
-    },
+    // fetch initial page or next pages
     async fetchGames() {
       if (this.loading || this.endReached) return;
       this.loading = true;
       try {
         const { data } = await api.get('/games/trending', {
           params: {
-            size: this.pageSize,
-            page: this.page,
+            size:     this.pageSize,
+            page:     this.page,
             ordering: this.ordering,
-            search: this.searchTerm
+            search:   this.searchTerm || null
           }
         });
         const valid = data.filter(g => g.backgroundImage);
@@ -140,11 +97,118 @@ export default {
         this.loading = false;
       }
     },
+
+    // infinite scroll
     onScroll() {
       if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
         this.fetchGames();
       }
+    },
+
+    // reset to home state (clears search & sort)
+    goHome() {
+      this.searchTerm = '';
+      this.ordering   = '';
+      this.games      = [];
+      this.page       = 1;
+      this.endReached = false;
+      this.fetchGames();
+      this.fetchUserLists();
+    },
+
+    // when sort dropdown changes
+    onSortChange() {
+      // same logic as searchTerm watcher
+      this.games      = [];
+      this.page       = 1;
+      this.endReached = false;
+      history.replaceState(null, '', this._buildUrl());
+      this.fetchGames();
+    },
+
+    // build URL query string
+    _buildUrl() {
+      const p = new URLSearchParams();
+      if (this.searchTerm) p.set('search', this.searchTerm);
+      if (this.ordering)   p.set('ordering', this.ordering);
+      return p.toString() ? `?${p.toString()}` : window.location.pathname;
+    },
+
+    // load user's wishlist & completed lists
+    async fetchUserLists() {
+      if (!isLoggedIn()) return;
+      const user = getUsername();
+      try {
+        const [ws, cs] = await Promise.all([
+          api.get(`/users/${user}/games`, { params: { status: 'WISHLIST' } }),
+          api.get(`/users/${user}/games`, { params: { status: 'COMPLETED' } })
+        ]);
+        this.wishlistIds  = ws.data.map(g => g.id);
+        this.completedIds = cs.data.map(g => g.id);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+
+    // toggle in/out of wishlist
+    async toggleWishlist(game) {
+      if (!isLoggedIn()) return;
+      const user   = getUsername();
+      const inList = this.wishlistIds.includes(game.id);
+      try {
+        if (inList) {
+          await api.delete(`/users/${user}/games/${game.id}`, { params: { status: 'WISHLIST' } });
+        } else {
+          await api.post(`/users/${user}/games`, { username: user, gameId: game.id, status: 'WISHLIST' });
+        }
+        await this.fetchUserLists();
+      } catch (e) {
+        console.error(e);
+      }
+    },
+
+    // toggle in/out of completed
+    async toggleCompleted(game) {
+      if (!isLoggedIn()) return;
+      const user   = getUsername();
+      const inList = this.completedIds.includes(game.id);
+      try {
+        if (inList) {
+          await api.delete(`/users/${user}/games/${game.id}`, { params: { status: 'COMPLETED' } });
+        } else {
+          await api.post(`/users/${user}/games`, { username: user, gameId: game.id, status: 'COMPLETED' });
+        }
+        await this.fetchUserLists();
+      } catch (e) {
+        console.error(e);
+      }
     }
+  },
+
+  watch: {
+    // when the global searchTerm updates
+    searchTerm() {
+      this.games      = [];
+      this.page       = 1;
+      this.endReached = false;
+      history.replaceState(null, '', this._buildUrl());
+      this.fetchGames();
+    }
+  },
+
+  mounted() {
+    // initialize from URL params
+    const p = new URLSearchParams(window.location.search);
+    this.searchTerm = p.get('search')   || '';
+    this.ordering   = p.get('ordering') || '';
+
+    this.fetchGames();
+    this.fetchUserLists();
+    window.addEventListener('scroll', this.onScroll);
+  },
+
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.onScroll);
   }
 };
 </script>
