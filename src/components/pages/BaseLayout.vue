@@ -10,7 +10,7 @@
         <span class="brand-text">Pixel Archive</span>
       </router-link>
 
-      <!-- Navigație centrată -->
+      <!-- Centered nav -->
       <ul class="nav nav-pills nav-menu">
         <li class="nav-item px-2">
           <router-link to="/" class="nav-link" active-class="active" exact>Games</router-link>
@@ -26,23 +26,30 @@
         </li>
       </ul>
 
-      <!-- Butoane auth -->
+      <!-- Auth / Profile -->
       <div class="d-flex align-items-center ms-auto">
         <router-link
           v-if="!loggedIn"
           to="/register"
           class="btn btn-outline-light btn-sm me-2"
-        >Sign Up</router-link>
+        >
+          Sign Up
+        </router-link>
         <router-link
           v-if="!loggedIn"
           to="/login"
           class="btn btn-outline-light btn-sm me-2"
-        >Login</router-link>
+        >
+          Login
+        </router-link>
         <router-link
           v-else
           to="/profile"
-          class="btn btn-outline-light btn-sm"
-        >Profile</router-link>
+          class="profile-link"
+          title="Profile"
+        >
+          <i class="bi bi-person-circle profile-icon"></i>
+        </router-link>
       </div>
     </nav>
 
@@ -76,20 +83,22 @@ export default {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+/* Bootstrap Icons */
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
 
-/* Brand cu gradient roșu→auriu */
+/* Pixelated gradient brand */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 .brand-text {
   font-family: 'Press Start 2P', cursive;
   font-size: 1.75rem;
-  background: linear-gradient(45deg,#e53935,#ffd700);
+  background: linear-gradient(45deg, #e53935, #ffd700);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   user-select: none;
   white-space: nowrap;
 }
 
-/* Meniul centrat absolut */
+/* Centered nav menu */
 .nav-menu {
   position: absolute;
   left: 50%;
@@ -98,28 +107,60 @@ export default {
   gap: 1rem;
 }
 
-/* Stil nav-pills */
+/* Nav-pills styling */
 .nav-pills .nav-link {
   color: #bbb;
   font-weight: 500;
-  transition: color .2s;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: 
+    color 0.2s ease, 
+    background 0.2s ease;
 }
+/* Hover cu gradient rosu → galben */
 .nav-pills .nav-link:hover {
   color: #fff;
+  background: linear-gradient(
+    45deg,
+    #e53935 0%,
+    #ffd700 100%
+  ) !important;
 }
+/* Tab activ: acelasi gradient, fără underline */
 .nav-pills .nav-link.active {
   color: #fff;
-  position: relative;
+  background: linear-gradient(
+    45deg,
+    #e53935 0%,
+    #ffd700 100%
+  ) !important;
 }
-.nav-pills .nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background-color: #ffd700;
-  border-radius: 2px;
+
+/* Profile icon link */
+.profile-link {
+  padding: 0;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+}
+.profile-icon {
+  font-size: 2.5rem;
+  color: #fff;
+  transition: transform 0.2s ease, background 0.2s ease, -webkit-background-clip 0s;
+}
+/* Gradient hover pe iconiță */
+.profile-link:hover .profile-icon {
+  /* transform puțin pentru feedback */
+  transform: scale(1.1);
+  /* gradient text */
+  background: linear-gradient(
+    45deg,
+    #e53935 0%,
+    #ffd700 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Go Up button */
@@ -141,5 +182,7 @@ export default {
   transition: background-color .2s;
   z-index: 1000;
 }
-.go-up:hover { background-color: #666; }
+.go-up:hover {
+  background-color: #666;
+}
 </style>

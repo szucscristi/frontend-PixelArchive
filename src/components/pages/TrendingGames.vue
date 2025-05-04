@@ -3,12 +3,12 @@
     <div class="trending-section py-3">
 
       <!-- Search Bar (numai aici) -->
-      <div class="search-container px-4 py-2 bg-dark mb-4">
+      <div class="search-container px-4 py-2 mb-4">
         <input
           v-model="searchTerm"
           @input="onSearchChange"
           type="text"
-          class="form-control form-control-lg bg-secondary text-light border-0 mx-auto"
+          class="form-control form-control-lg modern-search mx-auto"
           placeholder="Search the archive…"
           style="max-width:600px;"
         />
@@ -21,7 +21,7 @@
           <select
             v-model="ordering"
             @change="onSortChange"
-            class="form-select form-select-sm bg-secondary text-light border-0"
+            class="form-select form-select-sm sort-dropdown"
             style="width:120px;"
           >
             <option value="">Default</option>
@@ -61,9 +61,9 @@
 </template>
 
 <script>
-import BaseLayout          from './BaseLayout.vue';
-import GameCard             from './GameCard.vue';
-import api                  from '@/api';
+import BaseLayout from './BaseLayout.vue';
+import GameCard    from './GameCard.vue';
+import api         from '@/api';
 import { isLoggedIn, getUsername } from '@/auth';
 
 export default {
@@ -116,8 +116,7 @@ export default {
       this.games      = [];
       this.page       = 1;
       this.endReached = false;
-      // actualizează URL (optional)
-      history.replaceState(null,'',this._buildUrl());
+      history.replaceState(null, '', this._buildUrl());
       this.fetchGames();
     },
     _buildUrl() {
@@ -135,8 +134,8 @@ export default {
           api.get(`/users/${user}/games`, { params:{ status: 'WISHLIST' } }),
           api.get(`/users/${user}/games`, { params:{ status: 'COMPLETED' } })
         ]);
-        this.wishlistIds  = ws.data.map(g=>g.id);
-        this.completedIds = cs.data.map(g=>g.id);
+        this.wishlistIds  = ws.data.map(g => g.id);
+        this.completedIds = cs.data.map(g => g.id);
       } catch (e) {
         console.error(e);
       }
@@ -178,7 +177,6 @@ export default {
   },
 
   mounted() {
-    // init din URL
     const p = new URLSearchParams(window.location.search);
     this.searchTerm = p.get('search')   || '';
     this.ordering   = p.get('ordering') || '';
@@ -199,8 +197,71 @@ export default {
   padding-bottom: 2rem;
 }
 
-/* Bara de căutare locală */
+/* Container centrat */
 .search-container {
-  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* Input modern default: glassmorphism */
+.modern-search {
+  width: 100%;
+  max-width: 600px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(8px);
+  border: none !important;
+  border-radius: 0.5rem;
+  color: var(--text-primary) !important;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* Placeholder discret */
+.modern-search::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Hover & focus: subtle outline */
+.modern-search:hover,
+.modern-search:focus {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Sort dropdown modernizat */
+.sort-dropdown {
+  /* Glassmorphism */
+  background: rgba(30, 30, 47, 0.8);
+  backdrop-filter: blur(8px);
+  /* Fără border default */
+  border: none;
+  /* Colţuri rotunjite */
+  border-radius: 0.5rem;
+  /* Padding intern mai generos */
+  padding: 0.5rem 1rem;
+  /* Umbră subtilă */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  /* Elimină săgeata nativă */
+  -webkit-appearance: none;
+  appearance: none;
+  /* Săgeată custom */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6Z' fill='white'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.625rem;
+  /* Text alb */
+  color: #fff;
+  /* Transition pentru hover/focus */
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.sort-dropdown:hover,
+.sort-dropdown:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+  background: rgba(30, 30, 47, 0.9);
 }
 </style>
