@@ -214,10 +214,12 @@ export default {
   font-size: 1rem;
   background: rgba(255, 255, 255, 0.04) !important;
   backdrop-filter: blur(8px);
-  border: none !important;
+  border: 2px solid transparent;                /* bordură transparentă */
   border-radius: 0.5rem;
   color: var(--text-primary) !important;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: background 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.2s ease;
 }
 
 /* Placeholder discret */
@@ -225,36 +227,29 @@ export default {
   color: var(--text-secondary);
 }
 
-/* Hover & focus: subtle outline */
+/* Hover & focus: outline custom în culoarea sort-dropdown */
 .modern-search:hover,
 .modern-search:focus {
   background: rgba(255, 255, 255, 0.08) !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(30, 30, 47, 0.9);   /* culoarea sort-dropdown */
 }
 
 /* Sort dropdown modernizat */
 .sort-dropdown {
-  /* Glassmorphism */
   background: rgba(30, 30, 47, 0.8);
   backdrop-filter: blur(8px);
-  /* Fără border default */
   border: none;
-  /* Colţuri rotunjite */
   border-radius: 0.5rem;
-  /* Padding intern mai generos */
   padding: 0.5rem 1rem;
-  /* Umbră subtilă */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  /* Elimină săgeata nativă */
   -webkit-appearance: none;
   appearance: none;
-  /* Săgeată custom */
   background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6Z' fill='white'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 0.625rem;
-  /* Text alb */
   color: #fff;
-  /* Transition pentru hover/focus */
   transition: box-shadow 0.2s ease, background 0.2s ease;
 }
 

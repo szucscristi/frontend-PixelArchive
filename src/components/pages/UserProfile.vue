@@ -88,11 +88,7 @@
         <button type="button" class="btn-close" @click="alertMessage = ''"></button>
       </div>
 
-      <h2>Welcome, {{ username }}!</h2>
-      <p>You are logged in.</p>
-      <button class="btn btn-outline-light mb-4" @click="doLogout">
-        Logout
-      </button>
+
 
       <!-- Admin Panel -->
       <div v-if="isAdmin" class="admin-panel mt-5">
@@ -194,9 +190,7 @@
         </div>
       </div>
 
-      <div v-else class="alert alert-info mt-4">
-        You are a regular user. Admin panel is hidden.
-      </div>
+
     </div>
 
     <!-- Modal confirmare Update/Delete -->
