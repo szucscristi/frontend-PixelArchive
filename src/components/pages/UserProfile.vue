@@ -30,49 +30,100 @@
             Completed ({{ completedGames.length }})
           </button>
         </li>
+         <!-- My Reviews -->
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            :class="{ active: currentTab === 'reviews' }"
+            @click="currentTab = 'reviews'"
+        >
+            My Reviews ({{ myReviews.length }})
+          </button>
+        </li>
       </ul>
 
-      <!-- Tab Content -->
-      <div class="mt-4">
-        <!-- Wishlist -->
-        <div v-if="currentTab === 'wishlist'">
-          <div v-if="wishlistGames.length" class="row g-3">
-            <div
-              v-for="game in wishlistGames"
-              :key="game.id"
-              class="col-6 col-md-4 col-lg-3"
-            >
-              <GameCard :game="game" />
-              <button
-                class="btn btn-sm btn-danger mt-2 w-100"
-                @click="removeFromWishlist(game.id)"
-              >
-                Remove from Wishlist
-              </button>
-            </div>
-          </div>
-          <p v-else class="text-center text-secondary">Your wishlist is empty.</p>
-        </div>
+<!-- Tab Content -->
+<div class="mt-4">
+  <!-- Wishlist -->
+  <div v-if="currentTab === 'wishlist'">
+    <div v-if="wishlistGames.length" class="row g-3">
+      <div
+        v-for="game in wishlistGames"
+        :key="game.id"
+        class="col-6 col-md-4 col-lg-3"
+      >
+        <GameCard :game="game" />
+        <button
+          class="btn btn-sm btn-danger mt-2 w-100"
+          @click="removeFromWishlist(game.id)"
+        >
+          Remove from Wishlist
+        </button>
+      </div>
+    </div>
+    <p v-else class="text-center text-secondary">
+      Your wishlist is empty.
+    </p>
+  </div>
 
-        <!-- Completed -->
-        <div v-else>
-          <div v-if="completedGames.length" class="row g-3">
-            <div
-              v-for="game in completedGames"
-              :key="game.id"
-              class="col-6 col-md-4 col-lg-3"
+  <!-- Completed -->
+  <div v-else-if="currentTab === 'completed'">
+    <div v-if="completedGames.length" class="row g-3">
+      <div
+        v-for="game in completedGames"
+        :key="game.id"
+        class="col-6 col-md-4 col-lg-3"
+      >
+        <GameCard :game="game" />
+        <button
+          class="btn btn-sm btn-warning mt-2 w-100"
+          @click="removeFromCompleted(game.id)"
+        >
+          Remove from Completed
+        </button>
+      </div>
+    </div>
+    <p v-else class="text-center text-secondary">
+      No completed games yet.
+    </p>
+  </div>
+
+  <!-- My Reviews -->
+  <div v-else-if="currentTab === 'reviews'">
+    <div v-if="myReviews.length" class="list-group">
+      <div
+        v-for="r in myReviews"
+        :key="r.id"
+        class="list-group-item bg-dark text-light border-secondary d-flex justify-content-between align-items-start"
+      >
+        <div>
+          <p class="mb-1">{{ r.content }}</p>
+          <small class="text-secondary">
+            on
+            <router-link
+              :to="{ name: 'game-details', params: { id: r.gameId } }"
             >
-              <GameCard :game="game" />
-              <button
-                class="btn btn-sm btn-warning mt-2 w-100"
-                @click="removeFromCompleted(game.id)"
-              >
-                Remove from Completed
-              </button>
-            </div>
-          </div>
-          <p v-else class="text-center text-secondary">No completed games yet.</p>
+            {{ r.gameName }}
+            </router-link>
+            at {{ new Date(r.createdAt).toLocaleString() }}
+          </small>
         </div>
+        <button
+          class="btn btn-sm btn-outline-light"
+          @click="editMyReview(r)"
+        >
+          Edit
+        </button>
+      </div>
+    </div>
+    <p v-else class="text-center text-secondary">
+      You haven’t written any reviews yet.
+    </p>
+  </div>
+</div>
+
+
+        
       </div>
       <!-- Alert notificare -->
       <div
@@ -122,16 +173,23 @@
           </div>
         </form>
 
-        <!-- Căutare jocuri -->
-        <div class="mt-4 mb-2">
-          <input
-            v-model="adminSearch"
-            @input="fetchAdminGames"
-            type="text"
-            class="form-control bg-dark text-light border-secondary"
-            placeholder="Search games..."
-          />
-        </div>
+        <!-- Modern Admin Search Bar, centrat -->
+<div class="admin-search-container mb-4 d-flex justify-content-center">
+  <div class="input-group bg-secondary bg-opacity-25 rounded-pill p-1" style="max-width: 400px; width: 100%;">
+    <span class="input-group-text bg-transparent border-0">
+      <i class="bi bi-search text-light"></i>
+    </span>
+    <input
+      v-model="adminSearch"
+      @input="fetchAdminGames"
+      type="text"
+      class="form-control bg-transparent border-0 text-light"
+      placeholder="Search games..."
+    />
+  </div>
+</div>
+
+
 
         <!-- Tabel jocuri -->
         <div class="mt-2">
@@ -189,9 +247,6 @@
           </table>
         </div>
       </div>
-
-
-    </div>
 
     <!-- Modal confirmare Update/Delete -->
     <div
@@ -398,7 +453,12 @@ export default {
 
       // --- alert ---
       alertMessage: '',
-      alertType: 'success'
+      alertType: 'success',
+
+      // --- reviews ---
+
+      myReviews: []
+      
     };
   },
   computed: {
@@ -592,10 +652,60 @@ export default {
       this.alertMessage = msg;
       this.alertType = type;
       setTimeout(() => (this.alertMessage = ''), 4000);
+    },
+
+     // 1) încărcarea review-urilor user-ului
+  async fetchMyReviews() {
+    try {
+      // 1) ia review-urile
+      const { data: reviews } = await api.getMyReviews(this.username);
+
+     // 2) pentru fiecare review, preia detaliile jocului
+      const withNames = await Promise.all(
+        reviews.map(async r => {
+          try {
+            const { data: game } = await api.getGameDetails(r.gameId);
+            return { ...r, gameName: game.name };
+          } catch {
+            // fallback: dacă nu găsim jocul, păstrăm id-ul
+            return { ...r, gameName: `Game #${r.gameId}` };
+          }
+        })
+      );
+ 
+      // 3) salvează
+      this.myReviews = withNames;
+    } catch (e) {
+      console.error('Failed to load my reviews:', e);
     }
+  },
+  watch: {
+    currentTab(newTab) {
+      if (newTab === 'reviews') {
+        this.fetchMyReviews();
+      }
+    }
+  },
+  async editMyReview(review) {
+    const updatedText = prompt('Edit your review:', review.content);
+    if (updatedText != null && updatedText.trim()) {
+      try {
+        const res = await api.updateReview(review.id, updatedText);
+        // actualizează în myReviews
+        this.myReviews = this.myReviews.map(r =>
+          r.id === review.id ? res.data : r
+        );
+        this.showAlert('Review updated.', 'success');
+      } catch (e) {
+        console.error('Failed to update review:', e);
+        this.showAlert('Error updating review.', 'danger');
+      }
+    }
+  },
   },
   async mounted() {
     await this.fetchLists();
+    await  this.fetchMyReviews();
     if (this.isAdmin) this.fetchAdminGames();
   },
   beforeRouteEnter(to, from, next) {
@@ -619,4 +729,8 @@ export default {
   top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.5);
 }
+.admin-search-container .form-control::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
 </style>

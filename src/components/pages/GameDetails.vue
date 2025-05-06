@@ -55,11 +55,8 @@
             </li>
           </ul>
 
-          <!-- Additional image, afișată sub platforms -->
-          <div
-            v-if="game.background_image_additional"
-            class="mt-3"
-          >
+          <!-- Additional image -->
+          <div v-if="game.background_image_additional" class="mt-3">
             <h5 class="mb-2">Additional Image</h5>
             <img
               :src="game.background_image_additional"
@@ -76,17 +73,26 @@
     <div v-else class="text-center text-light py-5">
       <p>Game not found.</p>
     </div>
+
+    <!-- Reviews section -->
+    <ReviewList :gameId="Number(id)" />
   </BaseLayout>
 </template>
 
 <script>
-import axios      from 'axios';
 import BaseLayout from './BaseLayout.vue';
+import ReviewList from './ReviewList.vue';
+import api from '@/api';
 
 export default {
   name: 'GameDetails',
-  props: ['id'],
-  components: { BaseLayout },
+  props: {
+    id: {
+      type: [String, Number],
+      required: true
+    }
+  },
+  components: { BaseLayout, ReviewList },
   data() {
     return {
       game:    null,
@@ -95,12 +101,11 @@ export default {
   },
   async mounted() {
     try {
-      const { data } = await axios.get(
-        `http://localhost:8081/api/games/${this.id}/detail`
-      );
+      // folosim api (are prefixul /api)
+      const { data } = await api.get(`/games/${this.id}/detail`);
       this.game = data;
     } catch (e) {
-      console.error(e);
+      console.error('Failed to load game details:', e);
     } finally {
       this.loading = false;
     }
