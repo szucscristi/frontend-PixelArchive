@@ -19,7 +19,7 @@
           <router-link to="/creators" class="nav-link" active-class="active">Creators</router-link>
         </li>
         <li class="nav-item px-2">
-          <router-link to="/developers" class="nav-link" active-class="active">Developers</router-link>
+          <router-link to="/ai-assistant" class="nav-link" active-class="active">AI Assistant</router-link>
         </li>
         <li class="nav-item px-2">
           <router-link to="/stores" class="nav-link" active-class="active">Stores</router-link>
