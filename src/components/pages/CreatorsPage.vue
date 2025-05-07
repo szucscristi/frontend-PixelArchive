@@ -1,3 +1,4 @@
+<!-- src/components/pages/CreatorsPage.vue -->
 <template>
   <BaseLayout>
     <div class="creators-section py-3">
@@ -22,27 +23,21 @@
           :to="{ name: 'creator-details', params: { id: creator.id } }"
           class="col-6 col-md-4 col-lg-3 text-decoration-none"
         >
-          <div class="card h-100 bg-dark text-light shadow-sm">
+          <div class="creator-card">
             <div
               v-if="creator.imageBackground"
-              class="card-header p-0"
-              :style="{
-                backgroundImage: `url(${creator.imageBackground})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                height: '120px'
-              }"
+              class="banner"
+              :style="{ backgroundImage: `url(${creator.imageBackground})` }"
+            ></div>
+            <img
+              v-if="creator.image"
+              :src="creator.image"
+              class="avatar rounded-circle"
+              alt="avatar"
             />
-            <div class="card-body d-flex flex-column align-items-center text-center">
-              <img
-                v-if="creator.image"
-                :src="creator.image"
-                class="rounded-circle mb-2"
-                style="width: 72px; height: 72px; object-fit: cover; border: 2px solid #333;"
-                alt="avatar"
-              />
-              <h6 class="text-truncate w-100">{{ creator.name }}</h6>
-              <p class="text-secondary mb-0">{{ creator.gamesCount }} games</p>
+            <div class="card-footer text-center pt-5">
+              <h6 class="mb-1 text-white text-truncate">{{ creator.name }}</h6>
+              <small class="text-secondary">{{ creator.gamesCount }} games</small>
             </div>
           </div>
         </router-link>
@@ -89,13 +84,9 @@ export default {
             search:  this.searchTerm || null
           }
         });
-        // data is PagedResult<CreatorDTO>
         this.creators.push(...data.results);
-        if (!data.next) {
-          this.endReached = true;
-        } else {
-          this.page++;
-        }
+        if (!data.next) this.endReached = true;
+        else this.page++;
       } catch (e) {
         console.error('Failed to load creators:', e);
       } finally {
@@ -125,6 +116,17 @@ export default {
 </script>
 
 <style scoped>
+.creators-section {
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+}
+
+/* Search bar modern */
+.search-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
 .modern-search {
   width: 100%;
   max-width: 400px;
@@ -136,11 +138,71 @@ export default {
   color: #fff!important;
   transition: background .2s, box-shadow .2s;
 }
-.modern-search::placeholder { color: rgba(255,255,255,0.6); }
+.modern-search::placeholder {
+  color: rgba(255,255,255,0.6);
+}
 .modern-search:hover,
 .modern-search:focus {
   background: rgba(255,255,255,0.08)!important;
   outline: none;
   box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
 }
+
+/* Card container */
+.creator-card {
+  position: relative;
+  background-color: #1e1e2f;
+  border-radius: 1rem;
+  overflow: hidden;
+  /* umbra normală */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform, box-shadow;
+}
+
+/* hover: scale + glow dublu (roșu + galben) */
+.creator-card:hover {
+  transform: scale(1.03);
+  box-shadow:
+    0 0 8px rgba(229, 57, 53, 0.7),
+    0 0 16px rgba(255, 215, 0, 0.7),
+    0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Banner + avatar + footer */
+.banner {
+  width: 100%;
+  height: 120px;
+  background-size: cover;
+  background-position: center;
+}
+.avatar {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72px;
+  height: 72px;
+  border: 3px solid #1e1e2f;
+  background: #333;
+  object-fit: cover;
+}
+.card-footer {
+  margin-top: auto;
+  padding: 1rem 0.75rem 1.5rem;
+}
+.text-secondary {
+  color: #bbb!important;
+}
+
+/* Sentinel invizibil pentru infinite scroll */
+.sentinel {
+  height: 1px;
+  visibility: hidden;
+}
 </style>
+
+
+
+
+

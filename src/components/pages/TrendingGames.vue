@@ -142,7 +142,9 @@ export default {
     },
 
     async toggleWishlist(game) {
-      if (!isLoggedIn()) return;
+      if (!isLoggedIn()) {
+        return this.$router.push('/login');
+      }
       const user   = getUsername();
       const inList = this.wishlistIds.includes(game.id);
       try {
@@ -156,7 +158,9 @@ export default {
     },
 
     async toggleCompleted(game) {
-      if (!isLoggedIn()) return;
+      if (!isLoggedIn()) {
+        return this.$router.push('/login');
+      }
       const user   = getUsername();
       const inList = this.completedIds.includes(game.id);
       try {
@@ -214,12 +218,10 @@ export default {
   font-size: 1rem;
   background: rgba(255, 255, 255, 0.04) !important;
   backdrop-filter: blur(8px);
-  border: 2px solid transparent;                /* bordură transparentă */
+  border: 2px solid transparent;
   border-radius: 0.5rem;
   color: var(--text-primary) !important;
-  transition: background 0.2s ease,
-              border-color 0.2s ease,
-              box-shadow 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Placeholder discret */
@@ -232,7 +234,7 @@ export default {
 .modern-search:focus {
   background: rgba(255, 255, 255, 0.08) !important;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(30, 30, 47, 0.9);   /* culoarea sort-dropdown */
+  box-shadow: 0 0 0 2px rgba(30, 30, 47, 0.9);
 }
 
 /* Sort dropdown modernizat */

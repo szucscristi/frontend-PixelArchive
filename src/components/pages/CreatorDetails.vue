@@ -35,8 +35,12 @@
       </div>
   
       <!-- Description -->
-      <div v-if="creator && creator.description" class="container text-light mb-5">
-        <p>{{ creator.description }}</p>
+      <div
+        v-if="creator && creator.description"
+        class="container text-light mb-5"
+      >
+        <!-- We pull the description straight from the DB -->
+        <p v-html="creator.description"></p>
       </div>
   
       <!-- Games by this creator -->
@@ -55,7 +59,16 @@
             :key="game.id"
             class="col-6 col-md-4 col-lg-3"
           >
-            <GameCard :game="game" />
+            <div class="creator-game-card">
+              <img
+                :src="game.backgroundImage"
+                alt="Game cover"
+                class="cover"
+              />
+              <div class="game-info">
+                <h3 class="title">{{ game.name }}</h3>
+              </div>
+            </div>
           </div>
           <p
             v-if="!gamesLoading && !creatorGames.length"
@@ -71,12 +84,11 @@
   
   <script>
   import BaseLayout from './BaseLayout.vue';
-  import GameCard    from './GameCard.vue';
-  import api         from '@/api';
+  import api        from '@/api';
   
   export default {
     name: 'CreatorDetails',
-    components: { BaseLayout, GameCard },
+    components: { BaseLayout },
     props: { id: [String, Number] },
     data() {
       return {
@@ -142,5 +154,38 @@
     color: #bbb !important;
   }
   .mb-5 { margin-bottom: 3rem !important; }
+  
+  /* -- simplified game card inside CreatorDetails -- */
+  .creator-game-card {
+    background-color: #1e1e2f;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
+  }
+  .creator-game-card:hover {
+    transform: scale(1.03);
+  }
+  .creator-game-card .cover {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+  }
+  .creator-game-card .game-info {
+    padding: 0.75rem;
+    text-align: center;
+  }
+  .creator-game-card .title {
+    margin: 0;
+    font-size: 1rem;
+    color: #fff;
+    /* wrap long names onto two lines */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+  }
   </style>
   

@@ -10,83 +10,100 @@
         </button>
       </div>
 
-      <!-- Tabs -->
+ <!-- Tabs -->
       <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <button
-            class="nav-link"
-            :class="{ active: currentTab === 'wishlist' }"
-            @click="currentTab = 'wishlist'"
-          >
+        <li class="nav-item wishlist-tab">
+          <button class="nav-link" :class="{ active: currentTab==='wishlist' }" @click="currentTab='wishlist'">
+            <img src="@/assets/wishlist.png" class="tab-icon me-1" alt="Wishlist" />
             Wishlist ({{ wishlistGames.length }})
           </button>
         </li>
-        <li class="nav-item">
-          <button
-            class="nav-link"
-            :class="{ active: currentTab === 'completed' }"
-            @click="currentTab = 'completed'"
-          >
+        <li class="nav-item completed-tab">
+          <button class="nav-link" :class="{ active: currentTab==='completed' }" @click="currentTab='completed'">
+            <img src="@/assets/completed.png" class="tab-icon me-1" alt="Completed" />
             Completed ({{ completedGames.length }})
           </button>
         </li>
-         <!-- My Reviews -->
-        <li class="nav-item">
-          <button
-            class="nav-link"
-            :class="{ active: currentTab === 'reviews' }"
-            @click="currentTab = 'reviews'"
+        <li class="nav-item reviews-tab"> <!-- adăugăm clasa reviews-tab -->
+        <button
+          class="nav-link"
+          :class="{ active: currentTab === 'reviews' }"
+          @click="currentTab = 'reviews'"
         >
-            My Reviews ({{ myReviews.length }})
-          </button>
-        </li>
+          <!-- icon chat în stânga, folosind Bootstrap Icons -->
+          <i class="bi bi-chat-dots tab-icon"></i>
+          My Reviews ({{ myReviews.length }})
+        </button>
+      </li>
       </ul>
 
-<!-- Tab Content -->
-<div class="mt-4">
-  <!-- Wishlist -->
-  <div v-if="currentTab === 'wishlist'">
-    <div v-if="wishlistGames.length" class="row g-3">
-      <div
-        v-for="game in wishlistGames"
-        :key="game.id"
-        class="col-6 col-md-4 col-lg-3"
-      >
-        <GameCard :game="game" />
-        <button
-          class="btn btn-sm btn-danger mt-2 w-100"
-          @click="removeFromWishlist(game.id)"
-        >
-          Remove from Wishlist
-        </button>
-      </div>
-    </div>
-    <p v-else class="text-center text-secondary">
-      Your wishlist is empty.
-    </p>
-  </div>
+      <!-- Tab Content -->
+      <div class="mt-4">
+        <!-- Wishlist -->
+        <div v-if="currentTab === 'wishlist'">
+          <div v-if="wishlistGames.length" class="row g-3">
+            <div
+              v-for="game in wishlistGames"
+              :key="game.id"
+              class="col-6 col-md-4 col-lg-3"
+            >
 
-  <!-- Completed -->
-  <div v-else-if="currentTab === 'completed'">
-    <div v-if="completedGames.length" class="row g-3">
-      <div
-        v-for="game in completedGames"
-        :key="game.id"
-        class="col-6 col-md-4 col-lg-3"
-      >
-        <GameCard :game="game" />
-        <button
-          class="btn btn-sm btn-warning mt-2 w-100"
-          @click="removeFromCompleted(game.id)"
-        >
-          Remove from Completed
-        </button>
-      </div>
-    </div>
-    <p v-else class="text-center text-secondary">
-      No completed games yet.
-    </p>
-  </div>
+              <router-link
+                :to="{ name: 'game-details', params: { id: game.id } }"
+                class="user-game-card text-decoration-none d-block"
+                >
+                <img :src="game.backgroundImage" alt="Cover" class="cover" />
+                <div class="info">
+                  <h5 class="name text-truncate">{{ game.name }}</h5>
+                  <p class="rating">⭐ {{ game.rating }}</p>
+                </div>
+              </router-link>
+
+              <button
+                class="btn btn-sm btn-danger mt-2 w-100"
+                @click="removeFromWishlist(game.id)"
+              >
+                Remove from Wishlist
+              </button>
+            </div>
+          </div>
+          <p v-else class="text-center text-secondary">
+            Your wishlist is empty.
+          </p>
+        </div>
+
+        <!-- Completed -->
+        <div v-else-if="currentTab === 'completed'">
+          <div v-if="completedGames.length" class="row g-3">
+            <div
+              v-for="game in completedGames"
+              :key="game.id"
+              class="col-6 col-md-4 col-lg-3"
+            >
+
+              <router-link
+                :to="{ name: 'game-details', params: { id: game.id } }"
+                class="user-game-card text-decoration-none d-block"
+                >
+                <img :src="game.backgroundImage" alt="Cover" class="cover" />
+                <div class="info">
+                  <h5 class="name text-truncate">{{ game.name }}</h5>
+                  <p class="rating">⭐ {{ game.rating }}</p>
+                </div>
+              </router-link>
+
+              <button
+                class="btn btn-sm btn-warning mt-2 w-100"
+                @click="removeFromCompleted(game.id)"
+              >
+                Remove from Completed
+              </button>
+            </div>
+          </div>
+          <p v-else class="text-center text-secondary">
+            No completed games yet.
+          </p>
+        </div>
 
   <!-- My Reviews -->
   <div v-else-if="currentTab === 'reviews'">
@@ -410,13 +427,14 @@
 
 <script>
 import BaseLayout from './BaseLayout.vue';
-import GameCard from './GameCard.vue';
 import { getUsername, logout, isAdmin } from '@/auth';
 import api from '@/api';
+import wishlistIcon     from '@/assets/wishlist.png';
+import completedIcon    from '@/assets/completed.png';
 
 export default {
   name: 'UserProfile',
-  components: { BaseLayout, GameCard },
+  components: { BaseLayout },
   data() {
     return {
       username: getUsername(),
@@ -457,7 +475,9 @@ export default {
 
       // --- reviews ---
 
-      myReviews: []
+      myReviews: [],
+      wishlistIcon,
+      completedIcon
       
     };
   },
@@ -716,21 +736,131 @@ export default {
 </script>
 
 <style scoped>
-.admin-panel hr {
-  border-color: #444;
+/* New simple card for user's games */
+.user-game-card {
+  position: relative;        /* for the pseudo-element */
+  background-color: #1e1e2f;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
-/* cursoare pentru taburi */
+
+.user-game-card:hover {
+  transform: scale(1.03);
+}
+
+/* Gradient-only border on hover */
+.user-game-card:hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;                /* border thickness */
+  border-radius: 1rem;         /* match card radius */
+  background: linear-gradient(
+    45deg,
+    #e53935 0%,
+    #ffd700 100%
+  );
+  /* cut out the inside so you only see the border */
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+.user-game-card .cover {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.user-game-card .info {
+  padding: 0.75rem;
+  color: #fff;
+}
+
+.user-game-card .name {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.user-game-card .rating {
+  margin: 0.25rem 0 0;
+  color: #ffce00;
+  font-size: 0.9rem;
+}
+
+/* Tab styling */
 .nav-tabs .nav-link {
   cursor: pointer;
+  color: #fff !important;             /* default tabs white */
+  transition: color 0.2s ease;
 }
-/* backdrop implicit */
+
+/* Make active tab black text on white bg */
+.nav-tabs .nav-link.active {
+  color: #000 !important;             /* active tab text black for contrast */
+  background-color: #fff !important;  /* active tab bg white */
+  border-color: #fff !important;      /* active border white */
+}
+
+/* Tab Icons */
+.tab-icon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.2s ease;
+  vertical-align: middle;
+  margin-right: 0.5rem;
+}
+
+/* Wishlist Tab */
+.wishlist-tab .nav-link {
+  color: #e53935 !important;          /* wishlist text red */
+}
+.wishlist-tab .nav-link .tab-icon {
+  filter: none;                       /* preserve original icon color */
+}
+.wishlist-tab .nav-link:hover .tab-icon {
+  transform: scale(1.2);
+}
+
+/* Completed Tab */
+.completed-tab .nav-link {
+  color: #ffd700 !important;          /* completed text gold */
+}
+.completed-tab .nav-link .tab-icon {
+  filter: none;
+}
+.completed-tab .nav-link:hover .tab-icon {
+  transform: scale(1.2);
+}
+
+/* Reviews Tab */
+.reviews-tab .nav-link {
+  color: #0dcaf0 !important;          /* culoare turcoaz specifcă Reviews */
+}
+.reviews-tab .nav-link .tab-icon {
+  color: #0dcaf0;                     /* icon turcoaz */
+}
+.reviews-tab .nav-link:hover .tab-icon {
+  transform: scale(1.2);
+}
+
+/* Modal backdrop */
 .modal-backdrop {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.5);
 }
+
+/* Admin search placeholder */
 .admin-search-container .form-control::placeholder {
   color: rgba(255,255,255,0.6);
 }
-
 </style>
+
