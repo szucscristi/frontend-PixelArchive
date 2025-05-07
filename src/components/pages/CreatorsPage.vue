@@ -1,60 +1,60 @@
 <template>
   <BaseLayout>
-    <div class="py-5">
-      <!-- Header + Search -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-light">Creators</h2>
-        <div class="input-wrapper">
-          <i class="bi bi-search text-light me-2"></i>
-          <input
-            v-model="searchTerm"
-            @input="fetchCreators"
-            type="text"
-            class="form-control search-input"
-            placeholder="Search creators..."
-          />
-        </div>
+    <div class="creators-section py-3">
+
+      <!-- Search Bar live -->
+      <div class="search-container px-4 py-2 mb-4">
+        <input
+          v-model="searchTerm"
+          @input="onSearchChange"
+          type="text"
+          class="form-control form-control-lg modern-search mx-auto"
+          placeholder="Search creators..."
+          style="max-width: 400px;"
+        />
       </div>
 
-      <!-- Grid -->
-      <div class="row g-3">
-        <div
+      <!-- Grid de creatori -->
+      <div class="row g-3 px-4">
+        <router-link
           v-for="creator in creators"
           :key="creator.id"
-          class="col-6 col-md-4 col-lg-3"
+          :to="{ name: 'creator-details', params: { id: creator.id } }"
+          class="col-6 col-md-4 col-lg-3 text-decoration-none"
         >
-          <router-link
-            :to="{ name: 'creator-details', params: { id: creator.id } }"
-            class="text-decoration-none"
-          >
-            <div class="creator-card">
-              <div
-                v-if="creator.imageBackground"
-                class="banner"
-                :style="{ backgroundImage: `url(${creator.imageBackground})` }"
-              />
+          <div class="card h-100 bg-dark text-light shadow-sm">
+            <div
+              v-if="creator.imageBackground"
+              class="card-header p-0"
+              :style="{
+                backgroundImage: `url(${creator.imageBackground})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                height: '120px'
+              }"
+            />
+            <div class="card-body d-flex flex-column align-items-center text-center">
               <img
                 v-if="creator.image"
                 :src="creator.image"
-                class="avatar"
+                class="rounded-circle mb-2"
+                style="width: 72px; height: 72px; object-fit: cover; border: 2px solid #333;"
                 alt="avatar"
               />
-              <div class="card-footer">
-                <h5 class="mb-1 text-truncate">{{ creator.name }}</h5>
-                <small class="text-secondary">{{ creator.gamesCount }} games</small>
-              </div>
+              <h6 class="text-truncate w-100">{{ creator.name }}</h6>
+              <p class="text-secondary mb-0">{{ creator.gamesCount }} games</p>
             </div>
-          </router-link>
-        </div>
+          </div>
+        </router-link>
 
-        <p v-if="!loading && !creators.length" class="text-center text-secondary">
+        <p v-if="!loading && !creators.length" class="text-center text-secondary mt-4">
           No creators found.
         </p>
       </div>
 
-      <!-- Spinner -->
-      <div v-if="loading" class="text-center my-4">
-        <div class="spinner-border text-light" role="status"></div>
+      <!-- Spinner la încărcare -->
+      <div v-if="loading" class="text-center text-secondary my-4">
+        <div class="spinner-border" role="status"></div>
       </div>
     </div>
   </BaseLayout>
@@ -70,82 +70,77 @@ export default {
   data() {
     return {
       creators:   [],
+      page:       1,
+      pageSize:   14,
       searchTerm: '',
-      loading:    false
+      loading:    false,
+      endReached: false
     };
   },
   methods: {
     async fetchCreators() {
+      if (this.loading || this.endReached) return;
       this.loading = true;
       try {
         const { data } = await api.get('/creators', {
-          params: { search: this.searchTerm || null }
+          params: {
+            page:    this.page,
+            size:    this.pageSize,
+            search:  this.searchTerm || null
+          }
         });
-        this.creators = data;
+        // data is PagedResult<CreatorDTO>
+        this.creators.push(...data.results);
+        if (!data.next) {
+          this.endReached = true;
+        } else {
+          this.page++;
+        }
       } catch (e) {
         console.error('Failed to load creators:', e);
       } finally {
         this.loading = false;
       }
+    },
+    onSearchChange() {
+      this.creators   = [];
+      this.page       = 1;
+      this.endReached = false;
+      this.fetchCreators();
+    },
+    onScroll() {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
+        this.fetchCreators();
+      }
     }
   },
   mounted() {
     this.fetchCreators();
+    window.addEventListener('scroll', this.onScroll);
+  },
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.onScroll);
   }
 };
 </script>
 
 <style scoped>
-.input-wrapper {
-  display: flex;
-  align-items: center;
-  background: rgba(255,255,255,0.05);
-  border-radius: 999px;
-  padding: 0.25rem 1rem;
-  width: 300px;
+.modern-search {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.04)!important;
+  backdrop-filter: blur(8px);
+  border: 2px solid transparent;
+  border-radius: .5rem;
+  color: #fff!important;
+  transition: background .2s, box-shadow .2s;
 }
-.search-input {
-  flex: 1;
-  border: none;
-  background: transparent !important;
-  color: white;
-}
-.search-input::placeholder {
-  color: rgba(255,255,255,0.6);
-}
-.creator-card {
-  position: relative;
-  background: #222;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  height: 260px;
-}
-.banner {
-  height: 120px;
-  background-size: cover;
-  background-position: center;
-  filter: brightness(0.6);
-}
-.avatar {
-  position: absolute;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 72px;
-  height: 72px;
-  border: 3px solid #222;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #333;
-}
-.card-footer {
-  margin-top: auto;
-  padding: 1rem 0.75rem;
-  text-align: center;
-}
-.card-footer h5 {
-  margin-bottom: 0.25rem;
+.modern-search::placeholder { color: rgba(255,255,255,0.6); }
+.modern-search:hover,
+.modern-search:focus {
+  background: rgba(255,255,255,0.08)!important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
 }
 </style>
