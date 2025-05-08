@@ -1,8 +1,12 @@
 <!-- src/components/pages/AiAssistant.vue -->
 <template>
   <BaseLayout>
+    <!-- Hero Section -->
+    <section class="ai-hero">
+      <h1 class="ai-hero__title">AI Game Assistant</h1>
+    </section>
+
     <div class="ai-assistant-container">
-      <h1 class="gradient-text mb-4">AI Game Assistant</h1>
       <div class="chat-container">
         <!-- Conversation history -->
         <div class="message-list" ref="messageList">
@@ -11,6 +15,12 @@
             :key="index"
             :class="['message', msg.role]"
           >
+            <!-- avatar icon -->
+            <img
+              :src="msg.role === 'user' ? userIcon : aiIcon"
+              class="message-avatar"
+              alt=""
+            />
             <div v-html="toHtml(msg.content)" class="message-content"></div>
           </div>
           <div v-if="isLoading" class="loading-dots">
@@ -26,7 +36,7 @@
             placeholder="Ask me about games..."
             class="form-control chat-input"
           />
-          <button @click="sendMessage" class="btn btn-gradient send-btn">
+          <button @click="sendMessage" class="btn send-btn">
             <i class="bi bi-send-fill"></i>
           </button>
         </div>
@@ -38,7 +48,9 @@
 <script>
 import BaseLayout from './BaseLayout.vue';
 import api from '@/api';
-import { marked } from 'marked'; // Markdown parser
+import { marked } from 'marked';
+import userIcon from '@/assets/user-icon.png';
+import aiIcon from '@/assets/ai-icon.png';
 
 export default {
   name: 'AiAssistant',
@@ -52,21 +64,19 @@ export default {
           content: `Hello! I'm **PixelBot**. Ask me anything about games, creators, or recommendations!`
         }
       ],
-      isLoading: false
+      isLoading: false,
+      userIcon,
+      aiIcon
     };
   },
   methods: {
     toHtml(md) {
-      // Parsează Markdown în HTML
       return marked.parse(md);
     },
     async sendMessage() {
       if (!this.userInput.trim()) return;
-
-      // Adaugă mesajul user-ului
       this.messages.push({ role: 'user', content: this.userInput });
       this.isLoading = true;
-
       try {
         const res = await api.askAI(this.userInput);
         const choice = res.data.choices?.[0]?.message?.content || '…';
@@ -81,7 +91,6 @@ export default {
         this.isLoading = false;
         this.userInput = '';
         this.$nextTick(() => {
-          // Scroll la finalul conversației
           const list = this.$refs.messageList;
           list.scrollTop = list.scrollHeight;
         });
@@ -92,66 +101,87 @@ export default {
 </script>
 
 <style scoped>
-/* Container & title */
-.ai-assistant-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  color: #fff;
-}
-.gradient-text {
-  font-family: 'Press Start 2P', cursive;
-  background: linear-gradient(45deg, #e53935, #ffd700);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Hero Section */
+.ai-hero {
+  background: url('@/assets/hero-bg.jpg') center/cover no-repeat;
+  padding: 4rem 1rem;
   text-align: center;
 }
-
-/* Chat box */
-.chat-container {
-  background: rgba(30, 30, 30, 0.85);
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+.ai-hero__title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 3rem;
+  color: #ffd700;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+  margin: 0;
 }
 
-/* Message list */
+/* Chat container poziționat peste hero */
+.ai-assistant-container {
+  max-width: 800px;
+  margin: -3rem auto 2rem;
+  padding: 0 1rem;
+}
+
+/* Fundalul chat-ului */
+.chat-container {
+  background: rgba(30, 30, 30, 0.85);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* Lista de mesaje */
 .message-list {
   max-height: 400px;
   overflow-y: auto;
-  margin-bottom: 1rem;
-  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
   background: rgba(20, 20, 20, 0.7);
   border-radius: 8px;
-  scrollbar-width: thin;
-  scrollbar-color: #555 transparent;
-}
-.message-list::-webkit-scrollbar {
-  width: 6px;
-}
-.message-list::-webkit-scrollbar-track {
-  background: transparent;
-}
-.message-list::-webkit-scrollbar-thumb {
-  background-color: #555;
-  border-radius: 3px;
 }
 
-/* Individual messages */
+/* Mesajele individuale */
 .message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
   margin-bottom: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem;
   border-radius: 8px;
-  line-height: 1.5;
+  font-family: 'Roboto Mono', monospace;
 }
-.message.user {
-  background: rgba(229, 57, 53, 0.2);
-  border-left: 4px solid #e53935;
-}
+/* AI messages: stânga */
 .message.assistant {
   background: rgba(255, 215, 0, 0.2);
   border-left: 4px solid #ffd700;
+  flex-direction: row;
 }
+/* User messages: dreapta */
+.message.user {
+  background: rgba(229, 57, 53, 0.2);
+  border-right: 4px solid #e53935;
+  flex-direction: row-reverse;
+}
+
+/* Avatar-ul */
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+/* Conținut Markdown */
+.message-content {
+  flex: 1;
+  line-height: 1.5;
+}
+/* aliniez textul user la dreapta */
+.message.user .message-content {
+  text-align: right;
+}
+/* markdown styling */
 .message-content strong {
   display: inline-block;
   margin-bottom: 0.25rem;
@@ -172,7 +202,7 @@ export default {
   margin: 0.25rem 0;
 }
 
-/* Loading dots */
+/* Punctele de încărcare */
 .loading-dots {
   display: flex;
   gap: 0.25rem;
@@ -186,45 +216,44 @@ export default {
 .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
 .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes blink {
-  0%, 100% { opacity: 0; }
-  50%      { opacity: 1; }
+  0%,100%{opacity:0;}50%{opacity:1;}
 }
 
-/* Input & send button */
+/* Zona de input */
 .input-container {
   display: flex;
   gap: 0.5rem;
 }
 .chat-input {
   flex-grow: 1;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255,255,255,0.05);
   border: none;
   border-radius: 6px;
   padding: 0.75rem 1rem;
   color: #fff;
-  transition: background 0.2s, box-shadow 0.2s;
 }
 .chat-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255,255,255,0.6);
 }
 .chat-input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 0 2px rgba(227, 115, 85, 0.5);
+  background: rgba(255,255,255,0.1);
+  box-shadow: 0 0 0 2px rgba(227,115,85,0.5);
 }
+
+/* Butonul de trimis */
 .send-btn {
-  background: linear-gradient(45deg, #e53935, #ffd700);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s, box-shadow 0.2s;
+  background: linear-gradient(45deg,#e53935,#ffd700);
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  padding:0 1rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 .send-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(229, 57, 53, 0.6);
+  box-shadow: 0 4px 12px rgba(229,57,53,0.6);
 }
 </style>
