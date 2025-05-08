@@ -22,7 +22,7 @@
           <router-link to="/ai-assistant" class="nav-link" active-class="active">AI Assistant</router-link>
         </li>
         <li class="nav-item px-2">
-          <router-link to="/stores" class="nav-link" active-class="active">Stores</router-link>
+          <router-link to="/charts" class="nav-link" active-class="active">Statistics</router-link>
         </li>
       </ul>
 

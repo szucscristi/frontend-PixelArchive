@@ -14,6 +14,7 @@ import UserRegister from './components/pages/UserRegister.vue';
 import CreatorsPage from './components/pages/CreatorsPage.vue';
 import CreatorDetails from './components/pages/CreatorDetails.vue';
 import AiAssistant from './components/pages/AiAssistant.vue';
+import GamesChart from './components/pages/GamesChart.vue';
 
 axios.defaults.baseURL = process.env.VUE_APP_API_BASE_URL;
 
@@ -29,6 +30,7 @@ const router = createRouter({
         { path: '/creators',        component: CreatorsPage },
         { path: '/creators/:id',    name: 'creator-details', component: CreatorDetails, props: true },
         { path: '/ai-assistant', component: AiAssistant },
+        { path: '/charts', name: 'games-chart', component: GamesChart },
     ]
 });
 
