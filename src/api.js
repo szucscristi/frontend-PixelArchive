@@ -17,6 +17,15 @@ api.interceptors.request.use(config => {
   return config
 })
 
+// auth
+export async function register(username, password, displayName) {
+  return api.post('/auth/register', { username, password, displayName });
+}
+
+export async function login(username, password) {
+  return api.post('/auth/login', { username, password });
+}
+
 // Instanță separată fără interceptor, pentru AI
 const aiClient = axios.create()
 
