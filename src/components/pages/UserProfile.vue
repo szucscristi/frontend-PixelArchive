@@ -159,11 +159,33 @@
 
 
       <!-- Admin Panel -->
-      <div v-if="isAdmin" class="admin-panel mt-5">
-        <h3>Admin Panel</h3>
-        <hr />
+<div v-if="isAdmin" class="admin-panel mt-5">
+  <h3 class="admin-panel__title">Admin Panel</h3>
+  <hr class="admin-panel__divider"/>
+
+  <!-- butoane centrate -->
+  <div class="d-flex justify-content-center mb-4 admin-panel__tabs">
+    <button
+      type="button"
+      class="btn btn-outline-light admin-panel__tab-btn"
+      :class="{ active: adminTab==='games' }"
+      @click="adminTab = 'games'"
+    >
+      Manage Games
+    </button>
+    <button
+      type="button"
+      class="btn btn-outline-light admin-panel__tab-btn"
+      :class="{ active: adminTab==='users' }"
+      @click="adminTab = 'users'"
+    >
+      Manage Users
+    </button>
+  </div>
+
 
         <!-- Form creare joc -->
+        <div v-if="adminTab==='games'" class="admin-panel__section">
         <form @submit.prevent="createGame" class="row g-3 align-items-end">
           <div class="col-md-2">
             <label class="form-label">ID</label>
@@ -264,6 +286,70 @@
           </table>
         </div>
       </div>
+
+
+    <!-- Users Management -->
+    <div v-else-if="adminTab==='users'" class="admin-panel__section">
+      <!-- 1) Search bar -->
+      <div class="admin-search-container mb-4 d-flex justify-content-center">
+        <div class="input-group bg-secondary bg-opacity-25 rounded-pill p-1"
+             style="max-width: 400px; width: 100%;">
+          <span class="input-group-text bg-transparent border-0">
+            <i class="bi bi-search text-light"></i>
+          </span>
+          <input
+            v-model="userSearch"
+            type="text"
+            class="form-control bg-transparent border-0 text-light"
+            placeholder="Search users..."
+          />
+        </div>
+      </div>
+
+      <h4 class="mt-4">Users</h4>
+      <table class="table table-dark table-striped">
+        <thead>
+            <tr>
+              <th>Username</th>
+              <th>Display Name</th>
+              <th>Locked?</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+        <tbody>
+          <!-- 2) iterate over filteredUsers -->
+          <tr v-for="user in filteredUsers" :key="user.username">
+            <td>{{ user.username }}</td>
+            <td>{{ user.displayName }}</td>
+            <td>
+              <span :class="{'text-danger': user.locked, 'text-success': !user.locked}">
+                {{ user.locked ? 'Yes' : 'No' }}
+              </span>
+            </td>
+            <td class="d-flex gap-2">
+              <button
+                class="btn btn-sm"
+                :class="user.locked ? 'btn-success' : 'btn-warning'"
+                @click="toggleUserLock(user)"
+              >
+                {{ user.locked ? 'Unban' : 'Ban' }}
+              </button>
+              <button
+                class="btn btn-sm btn-danger"
+                @click="deleteUser(user)"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+          <tr v-if="!filteredUsers.length">
+            <td colspan="4" class="text-center text-secondary">No users found.</td>
+          </tr>
+        </tbody>
+      </table>
+</div>
+</div>
+
 
     <!-- Modal confirmare Update/Delete -->
     <div
@@ -441,6 +527,9 @@ export default {
       currentTab: 'wishlist',
       wishlistGames: [],
       completedGames: [],
+      adminTab: 'games',
+      userSearch: '',
+      users: [],
 
       // --- admin panel ---
       adminSearch: '',
@@ -484,6 +573,14 @@ export default {
   computed: {
     isAdmin() {
       return isAdmin();
+    },
+    filteredUsers() {
+      const term = this.userSearch.toLowerCase().trim()
+      if (!term) return this.users
+      return this.users.filter(u =>
+        u.username.toLowerCase().includes(term) ||
+        u.displayName.toLowerCase().includes(term)
+      )
     }
   },
   methods: {
@@ -492,6 +589,52 @@ export default {
       logout();
       this.$router.push('/login');
     },
+
+     /** Load all users for the admin panel */
+  async fetchAdminUsers() {
+    try {
+      const res = await api.get('/admin/users');
+      this.users = res.data; 
+    } catch (e) {
+      console.error('Failed to load users:', e);
+      this.showAlert('Could not load users', 'danger');
+    }
+  },
+
+  /** Toggle lock/unlock on a user by username */
+/** Toggle lock/unlock on a user by username */
+async toggleUserLock(user) {
+  try {
+    if (user.locked) {
+      // dacă e blocat, de-blocăm
+      await api.put(`/admin/users/${user.username}/unlock`);
+      this.showAlert(`Unbanned ${user.username}`, 'success');
+    } else {
+      // dacă e de-blocat, blocăm
+      await api.put(`/admin/users/${user.username}/lock`);
+      this.showAlert(`Banned ${user.username}`, 'success');
+    }
+    // reîncarcă lista cu utilizatori actualizați
+    await this.fetchAdminUsers();
+  } catch (e) {
+    console.error('Failed to toggle lock:', e);
+    this.showAlert('Operation failed', 'danger');
+  }
+},
+
+
+  /** Permanently delete a user */
+  async deleteUser(user) {
+    if (!confirm(`Delete user ${user.username}?`)) return;
+    try {
+      await api.delete(`/admin/users/${user.username}`);
+      this.showAlert(`Deleted ${user.username}`, 'success');
+      this.users = this.users.filter(u => u.username !== user.username);
+    } catch (e) {
+      console.error('Failed to delete user:', e);
+      this.showAlert('Delete failed', 'danger');
+    }
+  },
 
     // ---- user lists ----
     async fetchLists() {
@@ -704,7 +847,7 @@ export default {
       if (newTab === 'reviews') {
         this.fetchMyReviews();
       }
-    }
+    },
   },
   async editMyReview(review) {
     const updatedText = prompt('Edit your review:', review.content);
@@ -726,7 +869,10 @@ export default {
   async mounted() {
     await this.fetchLists();
     await  this.fetchMyReviews();
-    if (this.isAdmin) this.fetchAdminGames();
+    if (this.isAdmin) {
+    this.fetchAdminGames();
+    this.fetchAdminUsers();
+  }
   },
   beforeRouteEnter(to, from, next) {
     if (!getUsername()) return next('/login');
@@ -862,5 +1008,51 @@ export default {
 .admin-search-container .form-control::placeholder {
   color: rgba(255,255,255,0.6);
 }
+
+.admin-panel {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.admin-panel__title {
+  text-align: center;
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: #ffd700;
+}
+
+.admin-panel__divider {
+  width: 3rem;
+  border-top: 2px solid #ffd700;
+  margin: 0.25rem auto 1.5rem;
+}
+
+.admin-panel__tabs {
+  gap: 1rem;
+}
+
+.admin-panel__tab-btn {
+  min-width: 130px;
+  transition: background 0.2s, color 0.2s;
+}
+.admin-panel__tab-btn.active,
+.admin-panel__tab-btn:hover {
+  background: linear-gradient(45deg, #e53935, #ffd700);
+  color: #000;
+  border-color: transparent;
+}
+
+.admin-panel__section {
+  margin-top: 2rem;
+}
+
+/* Dacă vrei să mai subțiezi tabelele */
+.admin-panel__section table {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
 </style>
 
