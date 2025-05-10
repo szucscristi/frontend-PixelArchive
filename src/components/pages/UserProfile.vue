@@ -5,7 +5,7 @@
        <!-- Header -->
        <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Welcome, {{ username }}!</h2>
-        <button class="btn btn-outline-light" @click="doLogout">
+        <button class="btn btn-logout" @click="doLogout">
           Logout
         </button>
       </div>
@@ -1019,12 +1019,12 @@ async toggleUserLock(user) {
   text-align: center;
   font-size: 1.75rem;
   margin-bottom: 0.5rem;
-  color: #ffd700;
+  color: #fff;
 }
 
 .admin-panel__divider {
   width: 3rem;
-  border-top: 2px solid #ffd700;
+  border-top: 2px solid #fff;
   margin: 0.25rem auto 1.5rem;
 }
 
@@ -1038,7 +1038,7 @@ async toggleUserLock(user) {
 }
 .admin-panel__tab-btn.active,
 .admin-panel__tab-btn:hover {
-  background: linear-gradient(45deg, #e53935, #ffd700);
+  background: #fff/*linear-gradient(45deg, #e53935, #ffd700)*/;
   color: #000;
   border-color: transparent;
 }
@@ -1052,6 +1052,18 @@ async toggleUserLock(user) {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   border-radius: 0.5rem;
   overflow: hidden;
+}
+
+/* New logout button styling */
+.btn-logout {
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
+  color: #fff;
+  transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.btn-logout:hover {
+  background-color: #c82333 !important;
+  border-color: #c82333 !important;
 }
 
 </style>

@@ -3,37 +3,72 @@
   <BaseLayout>
     <div class="d-flex justify-content-center align-items-center" style="height:70vh;">
       <form @submit.prevent="submit"
-            class="p-4 bg-secondary rounded"
+            class="p-4 rounded shadow form-custom"
             style="min-width:320px;">
-        <h3 class="text-light mb-3">Sign Up</h3>
+        <h3 class="text-light mb-4 text-center">Sign Up</h3>
 
-        <div class="mb-3">
-          <label class="form-label text-light">Username</label>
-          <input v-model="username" type="text" class="form-control" required />
-        </div>
-
+        <!-- Display Name first -->
         <div class="mb-3">
           <label class="form-label text-light">Display Name</label>
-          <input v-model="displayName" type="text" class="form-control" required />
+          <input
+            v-model="displayName"
+            type="text"
+            class="form-control"
+            placeholder="e.g. PixelWizard"
+            required
+          />
+          <div class="form-text">This is how other users will see you.</div>
         </div>
 
+        <!-- Username second -->
+        <div class="mb-3">
+          <label class="form-label text-light">Username</label>
+          <input
+            v-model="username"
+            type="text"
+            class="form-control"
+            placeholder="e.g. pixel_wizard123"
+            required
+          />
+          <div class="form-text">You will use this to log in.</div>
+        </div>
+
+        <!-- Password -->
         <div class="mb-3">
           <label class="form-label text-light">Password</label>
-          <input v-model="password" type="password" class="form-control" required />
+          <input
+            v-model="password"
+            type="password"
+            class="form-control"
+            placeholder="••••••••"
+            required
+          />
+          <div class="form-text">Use this password to log in.</div>
         </div>
 
+        <!-- Confirm Password -->
         <div class="mb-3">
           <label class="form-label text-light">Confirm Password</label>
-          <input v-model="confirmPassword" type="password" class="form-control" required />
+          <input
+            v-model="confirmPassword"
+            type="password"
+            class="form-control"
+            placeholder="••••••••"
+            required
+          />
         </div>
 
-        <button type="submit"
-                class="btn btn-primary w-100"
-                :disabled="loading">
+        <button
+          type="submit"
+          class="btn btn-primary w-100 mb-2"
+          :disabled="loading"
+        >
           {{ loading ? 'Creating...' : 'Sign Up' }}
         </button>
 
-        <div v-if="error" class="text-danger mt-2">{{ error }}</div>
+        <div v-if="error" class="text-danger mt-2 text-center">
+          {{ error }}
+        </div>
       </form>
     </div>
   </BaseLayout>
@@ -78,7 +113,48 @@ export default {
 </script>
 
 <style scoped>
-form {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+/* Base form styling */
+.form-custom {
+  background-color: #2a2a2a;    /* darker than bg-secondary */
+  border: 1px solid #fff;     /* blue accent (AICI AM MODIFICAT) */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Inputs */
+.form-control {
+  background-color: #343A40;
+  color: #fff;
+  border: 1px solid #555;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-control::placeholder {
+  color: #bbb;
+}
+.form-control:focus {
+  background-color: #343A40;
+  color: #fff;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+}
+
+/* Helper text */
+.form-text {
+  font-size: 0.875rem;
+  color: #ccc;
+}
+
+/* Override pentru butonul Sign Up */
+.btn-primary {
+  background-color: #2196F3 !important;
+  border-color:   #2196F3 !important;
+  color: #FFFFFF;
+  transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #1976D2 !important;
+  border-color:   #1976D2 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 </style>
