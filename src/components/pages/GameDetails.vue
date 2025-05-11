@@ -1,4 +1,3 @@
-<!-- src/components/pages/GameDetails.vue -->
 <template>
   <BaseLayout>
     <!-- Loading spinner -->
@@ -31,17 +30,19 @@
 
           <div class="mb-3">
             <span class="badge bg-primary me-2">
-              Released: {{ game.released }}
+              {{ $t('game.released', { date: game.released }) }}
             </span>
             <span class="badge bg-success me-2">
-              Rating: {{ game.rating }} / {{ game.rating_top }}
+              {{ $t('game.rating', { rating: game.rating, top: game.rating_top }) }}
             </span>
-            <span class="badge bg-info">Metacritic: {{ game.metacritic }}</span>
+            <span class="badge bg-info">
+              {{ $t('game.metacritic', { score: game.metacritic }) }}
+            </span>
           </div>
 
           <div class="game-description mb-4" v-html="game.description"></div>
 
-          <h5 class="mb-2">Platforms</h5>
+          <h5 class="mb-2">{{ $t('game.platforms') }}</h5>
           <ul class="list-group list-group-flush mb-4">
             <li
               v-for="plat in game.platforms"
@@ -50,14 +51,14 @@
             >
               {{ plat.platform.name }}
               <small class="text-secondary">
-                ({{ plat.released_at || 'N/A' }})
+                ({{ plat.released_at || $t('game.platforms.na') }})
               </small>
             </li>
           </ul>
 
           <!-- Additional image -->
           <div v-if="game.background_image_additional" class="mt-3">
-            <h5 class="mb-2">Additional Image</h5>
+            <h5 class="mb-2">{{ $t('game.additionalImage') }}</h5>
             <img
               :src="game.background_image_additional"
               alt="Additional cover"
@@ -71,7 +72,7 @@
 
     <!-- Fallback -->
     <div v-else class="text-center text-light py-5">
-      <p>Game not found.</p>
+      <p>{{ $t('game.notFound') }}</p>
     </div>
 
     <!-- Reviews section -->
@@ -79,10 +80,12 @@
   </BaseLayout>
 </template>
 
+
 <script>
 import BaseLayout from './BaseLayout.vue';
 import ReviewList from './ReviewList.vue';
 import api from '@/api';
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: 'GameDetails',
@@ -93,6 +96,16 @@ export default {
     }
   },
   components: { BaseLayout, ReviewList },
+  setup() {
+    const { locale } = useI18n({ useScope: 'global' })
+    const setLocale = (lang) => {
+      locale.value = lang
+    }
+    return {
+      currentLocale: locale,
+      setLocale
+    }
+  },
   data() {
     return {
       game:    null,

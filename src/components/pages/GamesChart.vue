@@ -1,8 +1,7 @@
-<!-- src/components/pages/GamesChart.vue -->
 <template>
   <BaseLayout>
     <div class="chart-page container py-5 text-light">
-      <h2 class="mb-4 text-center">Games released per year</h2>
+      <h2 class="mb-4 text-center">{{ $t('chart.title') }}</h2>
 
       <!-- Spinner while loading -->
       <div v-if="loading" class="text-center my-5">
@@ -16,15 +15,18 @@
           v-if="!loading && (!chartData || !chartData.labels.length)"
           class="text-center text-secondary mt-4"
         >
-          No release data available.
+          {{ $t('chart.noData') }}
         </p>
       </div>
     </div>
   </BaseLayout>
 </template>
 
+
 <script>
 import BaseLayout from './BaseLayout.vue'
+import { useI18n } from 'vue-i18n';
+
 import {
   Chart,
   Title,
@@ -43,6 +45,16 @@ Chart.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, B
 export default {
   name: 'GamesChart',
   components: { BaseLayout },
+  setup() {
+    const { locale } = useI18n({ useScope: 'global' })
+    const setLocale = (lang) => {
+      locale.value = lang
+    }
+    return {
+      currentLocale: locale,
+      setLocale
+    }
+  },
   data() {
     return {
       loading: true,

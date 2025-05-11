@@ -3,69 +3,66 @@
   <div class="d-flex flex-column min-vh-100 bg-dark text-light">
     <nav class="navbar navbar-dark bg-dark px-4 py-2 position-relative d-flex align-items-center">
       <!-- Brand -->
-      <router-link
-        to="/"
-        class="navbar-brand d-flex align-items-center"
-        @click.prevent="goHome"
-      >
+      <router-link to="/" class="navbar-brand d-flex align-items-center" @click.prevent="goHome">
         <span class="brand-text">Pixel Archive</span>
       </router-link>
 
       <!-- Centered nav -->
       <ul class="nav nav-pills nav-menu">
         <li class="nav-item px-2">
-          <!-- Games Nav -->
-          <router-link
-            to="/"
-            class="nav-link"
-            :class="{ active: isGamesActive }"
-          >
-            Games
+          <router-link to="/" class="nav-link" :class="{ active: isGamesActive }">
+            {{ $t('nav.games') }}
           </router-link>
         </li>
         <li class="nav-item px-2">
-          <!-- Creators Nav -->
-          <router-link
-            to="/creators"
-            class="nav-link"
-            :class="{ active: isCreatorsActive }"
-          >
-            Creators
+          <router-link to="/creators" class="nav-link" :class="{ active: isCreatorsActive }">
+            {{ $t('nav.creators') }}
           </router-link>
         </li>
         <li class="nav-item px-2">
           <router-link to="/ai-assistant" class="nav-link" active-class="active">
-            AI Assistant
+            {{ $t('nav.ai') }}
           </router-link>
         </li>
         <li class="nav-item px-2">
           <router-link to="/charts" class="nav-link" active-class="active">
-            Statistics
+            {{ $t('nav.statistics') }}
           </router-link>
         </li>
       </ul>
 
-      <!-- Auth / Profile -->
+      <!-- Auth / Profile + Language Switcher -->
       <div class="d-flex align-items-center ms-auto">
-        <router-link
-          v-if="!loggedIn"
-          to="/register"
-          class="btn btn-signup btn-sm me-2"
+        <!-- Language buttons -->
+        <button
+          class="lang-btn me-2"
+          :class="{ active: currentLocale === 'en' }"
+          @click="setLocale('en')"
+          aria-label="English"
         >
-          Sign Up
+          <img src="@/assets/flags/us.svg" alt="US" class="flag-icon" />
+        </button>
+        <button
+          class="lang-btn me-4"
+          :class="{ active: currentLocale === 'ro' }"
+          @click="setLocale('ro')"
+          aria-label="Română"
+        >
+          <img src="@/assets/flags/ro.svg" alt="RO" class="flag-icon" />
+        </button>
+
+        <!-- Auth buttons -->
+        <router-link v-if="!loggedIn" to="/register" class="btn btn-signup btn-sm me-2">
+          {{ $t('signup') }}
         </router-link>
-        <router-link
-          v-if="!loggedIn"
-          to="/login"
-          class="btn btn-login btn-sm me-2"
-        >
-          Login
+        <router-link v-if="!loggedIn" to="/login" class="btn btn-login btn-sm me-2">
+          {{ $t('login') }}
         </router-link>
         <router-link
           v-else
           to="/profile"
           class="profile-link"
-          title="Profile"
+          :title="$t('nav.profile')"
           active-class="active"
         >
           <i class="bi bi-person-circle profile-icon"></i>
@@ -83,21 +80,25 @@
 
 <script>
 import { isLoggedIn } from '@/auth'
-import GoUpButton     from './GoUpButton.vue'
+import GoUpButton from './GoUpButton.vue'
+import { useI18n } from 'vue-i18n'
 
 export default {
   name: 'BaseLayout',
   components: { GoUpButton },
+  setup() {
+    const { locale } = useI18n({ useScope: 'global' })
+    const setLocale = lang => { locale.value = lang }
+    return { currentLocale: locale, setLocale }
+  },
   computed: {
     loggedIn() {
       return isLoggedIn()
     },
-    // highlight "Games" on list or any game-details page
     isGamesActive() {
       const { path, name } = this.$route
       return path === '/' || name === 'game-details'
     },
-    // highlight "Creators" on list or any creator-details page
     isCreatorsActive() {
       const { path, name } = this.$route
       return path.startsWith('/creators') || name === 'creator-details'
@@ -108,7 +109,7 @@ export default {
       this.scrollToTop()
     },
     scrollToTop() {
-      window.scrollTo({ top:0, behavior:'smooth' })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 }
@@ -117,9 +118,9 @@ export default {
 <style scoped>
 /* Bootstrap Icons */
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
-
 /* Pixelated gradient brand */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 .brand-text {
   font-family: 'Press Start 2P', cursive;
   font-size: 1.75rem;
@@ -147,11 +148,43 @@ export default {
   border-radius: 0.5rem;
   transition: color 0.2s, background 0.2s;
 }
-/* hover and “active” both get gradient + black text */
 .nav-pills .nav-link:hover,
 .nav-pills .nav-link.active {
   color: #000 !important;
   background: linear-gradient(45deg, #e53935, #ffd700) !important;
+}
+
+/* Language buttons wrapper */
+.lang-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  line-height: 0;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+/* Inactive flags darker */
+.lang-btn:not(.active) .flag-icon {
+  filter: brightness(0.5);
+}
+
+/* Active flag full brightness */
+.lang-btn.active .flag-icon {
+  filter: brightness(1);
+}
+
+/* Hover brightens any flag */
+.lang-btn:hover .flag-icon {
+  filter: brightness(1.2);
+}
+
+/* Flag icons size */
+.flag-icon {
+  width: 2rem;
+  height: auto;
+  display: block;
 }
 
 /* Modern Login/Sign-Up buttons */
@@ -227,3 +260,4 @@ export default {
   background-color: #666;
 }
 </style>
+

@@ -2,14 +2,14 @@
   <BaseLayout>
     <div class="trending-section py-3">
 
-      <!-- Search Bar (numai aici) -->
+      <!-- Search Bar -->
       <div class="search-container px-4 py-2 mb-4">
         <input
           v-model="searchTerm"
           @input="onSearchChange"
           type="text"
           class="form-control form-control-lg modern-search mx-auto"
-          placeholder="Search the archive…"
+          :placeholder="$t('search.games.placeholder')"
           style="max-width:600px;"
         />
       </div>
@@ -24,12 +24,12 @@
             class="form-select form-select-sm sort-dropdown"
             style="width:120px;"
           >
-            <option value="">Default</option>
-            <option value="name">Name ↑</option>
-            <option value="-name">Name ↓</option>
-            <option value="released">Release Date</option>
-            <option value="-rating">Rating ↓</option>
-            <option value="rating">Rating ↑</option>
+            <option value="">{{ $t('sort.default') }}</option>
+            <option value="name">{{ $t('sort.nameAsc') }}</option>
+            <option value="-name">{{ $t('sort.nameDesc') }}</option>
+            <option value="released">{{ $t('sort.released') }}</option>
+            <option value="-rating">{{ $t('sort.ratingDesc') }}</option>
+            <option value="rating">{{ $t('sort.ratingAsc') }}</option>
           </select>
         </div>
       </div>
@@ -54,21 +54,33 @@
 
       <!-- Loading more… -->
       <div v-if="loading" class="text-center text-secondary my-4">
-        Loading more…
+        {{ $t('loading.more') }}
       </div>
     </div>
   </BaseLayout>
 </template>
+
 
 <script>
 import BaseLayout from './BaseLayout.vue';
 import GameCard    from './GameCard.vue';
 import api         from '@/api';
 import { isLoggedIn, getUsername } from '@/auth';
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: 'TrendingGames',
   components: { BaseLayout, GameCard },
+  setup() {
+    const { locale } = useI18n({ useScope: 'global' })
+    const setLocale = (lang) => {
+      locale.value = lang
+    }
+    return {
+      currentLocale: locale,
+      setLocale
+    }
+  },
   data() {
     return {
       games:        [],

@@ -5,55 +5,55 @@
       <form @submit.prevent="submit"
             class="p-4 rounded shadow form-custom"
             style="min-width:320px;">
-        <h3 class="text-light mb-4 text-center">Sign Up</h3>
+        <h3 class="text-light mb-4 text-center">{{ $t('register.title') }}</h3>
 
         <!-- Display Name first -->
         <div class="mb-3">
-          <label class="form-label text-light">Display Name</label>
+          <label class="form-label text-light">{{ $t('register.displayName') }}</label>
           <input
             v-model="displayName"
             type="text"
             class="form-control"
-            placeholder="e.g. PixelWizard"
+            :placeholder="$t('register.displayName.placeholder')"
             required
           />
-          <div class="form-text">This is how other users will see you.</div>
+          <div class="form-text">{{ $t('register.displayName.help') }}</div>
         </div>
 
         <!-- Username second -->
         <div class="mb-3">
-          <label class="form-label text-light">Username</label>
+          <label class="form-label text-light">{{ $t('register.username') }}</label>
           <input
             v-model="username"
             type="text"
             class="form-control"
-            placeholder="e.g. pixel_wizard123"
+            :placeholder="$t('register.username.placeholder')"
             required
           />
-          <div class="form-text">You will use this to log in.</div>
+          <div class="form-text">{{ $t('register.username.help') }}</div>
         </div>
 
         <!-- Password -->
         <div class="mb-3">
-          <label class="form-label text-light">Password</label>
+          <label class="form-label text-light">{{ $t('register.password') }}</label>
           <input
             v-model="password"
             type="password"
             class="form-control"
-            placeholder="••••••••"
+            :placeholder="$t('register.password.placeholder')"
             required
           />
-          <div class="form-text">Use this password to log in.</div>
+          <div class="form-text">{{ $t('register.password.help') }}</div>
         </div>
 
         <!-- Confirm Password -->
         <div class="mb-3">
-          <label class="form-label text-light">Confirm Password</label>
+          <label class="form-label text-light">{{ $t('register.confirmPassword') }}</label>
           <input
             v-model="confirmPassword"
             type="password"
             class="form-control"
-            placeholder="••••••••"
+            :placeholder="$t('register.confirmPassword.placeholder')"
             required
           />
         </div>
@@ -63,7 +63,7 @@
           class="btn btn-primary w-100 mb-2"
           :disabled="loading"
         >
-          {{ loading ? 'Creating...' : 'Sign Up' }}
+          {{ loading ? $t('register.submit.loading') : $t('register.submit') }}
         </button>
 
         <div v-if="error" class="text-danger mt-2 text-center">
@@ -74,13 +74,26 @@
   </BaseLayout>
 </template>
 
+
 <script>
 import BaseLayout from './BaseLayout.vue';
 import { register } from '@/api';
+import { useI18n } from 'vue-i18n';
+
 
 export default {
   name: 'UserRegister',
   components: { BaseLayout },
+  setup() {
+    const { locale } = useI18n({ useScope: 'global' })
+    const setLocale = (lang) => {
+      locale.value = lang
+    }
+    return {
+      currentLocale: locale,
+      setLocale
+    }
+  },
   data() {
     return {
       username: '',

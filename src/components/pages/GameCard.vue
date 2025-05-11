@@ -5,7 +5,11 @@
     :class="{ wishlisted: isWishlisted, completed: isCompleted }"
   >
     <!-- game cover -->
-    <img :src="game.backgroundImage" alt="Game cover" class="cover" />
+    <img
+      :src="game.backgroundImage"
+      :alt="$t('game.coverAlt')"
+      class="cover"
+    />
 
     <div class="game-info">
       <!-- title -->
@@ -21,13 +25,17 @@
           type="button"
           class="btn-icon"
           @click.prevent.stop="$emit('toggle-wishlist', game)"
-          :aria-label="isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
-          :title="isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
+          :aria-label="isWishlisted
+            ? $t('game.wishlist.remove')
+            : $t('game.wishlist.add')"
+          :title="isWishlisted
+            ? $t('game.wishlist.remove')
+            : $t('game.wishlist.add')"
         >
           <img
             :src="wishlistIcon"
             :class="{ active: isWishlisted }"
-            alt="Wishlist"
+            :alt="$t('game.wishlist.alt')"
           />
         </button>
 
@@ -36,13 +44,17 @@
           type="button"
           class="btn-icon"
           @click.prevent.stop="$emit('toggle-completed', game)"
-          :aria-label="isCompleted ? 'Unmark completed' : 'Add to completed games'"
-          :title="isCompleted ? 'Unmark completed' : 'Add to completed games'"
+          :aria-label="isCompleted
+            ? $t('game.completed.remove')
+            : $t('game.completed.add')"
+          :title="isCompleted
+            ? $t('game.completed.remove')
+            : $t('game.completed.add')"
         >
           <img
             :src="completedIcon"
             :class="{ active: isCompleted }"
-            alt="Completed"
+            :alt="$t('game.completed.alt')"
           />
         </button>
       </div>
@@ -50,9 +62,11 @@
   </div>
 </template>
 
+
 <script>
 import wishlistIcon from '@/assets/wishlist.png';
 import completedIcon from '@/assets/completed.png';
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: 'GameCard',
@@ -60,6 +74,16 @@ export default {
     game:           { type: Object,  required: true },
     isWishlisted:   { type: Boolean, default: false },
     isCompleted:    { type: Boolean, default: false }
+  },
+  setup() {
+    const { locale } = useI18n({ useScope: 'global' })
+    const setLocale = (lang) => {
+      locale.value = lang
+    }
+    return {
+      currentLocale: locale,
+      setLocale
+    }
   },
   data() {
     return {

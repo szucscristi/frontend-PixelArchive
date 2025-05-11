@@ -1,95 +1,110 @@
 <template>
-    <BaseLayout>
-  
-      <!-- Loading -->
-      <div v-if="loading" class="text-center py-5">
+  <BaseLayout>
+
+    <!-- Loading -->
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-light" role="status"></div>
+    </div>
+
+    <!-- Not found -->
+    <div v-else-if="!creator" class="text-center text-secondary py-5">
+      {{ $t('creator.notFound') }}
+    </div>
+
+    <!-- Detail header -->
+    <div v-else class="position-relative mb-5">
+      <!-- Banner -->
+      <div
+        v-if="creator.imageBackground"
+        class="detail-banner"
+        :style="{ backgroundImage: `url(${creator.imageBackground})` }"
+      />
+      <!-- Overlay cu avatar și text -->
+      <div class="banner-overlay d-flex align-items-end p-4">
+        <img
+          v-if="creator.image"
+          :src="creator.image"
+          class="detail-avatar me-3"
+          alt=""
+        />
+        <div>
+          <h1 class="mb-1 text-light">{{ creator.name }}</h1>
+          <small class="text-light">
+            {{ creator.gamesCount }} {{ $t('creators.games') }}
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div
+      v-if="creator && creator.description"
+      class="container text-light mb-5"
+    >
+      <p v-html="creator.description"></p>
+    </div>
+
+    <!-- Games by this creator -->
+    <div v-if="creator" class="container mb-5">
+      <h3 class="text-light mb-3">
+        {{ $t('creator.gamesBy', { name: creator.name }) }}
+      </h3>
+
+      <!-- Spinner pentru jocuri -->
+      <div v-if="gamesLoading" class="text-center my-4">
         <div class="spinner-border text-light" role="status"></div>
       </div>
-  
-      <!-- Not found -->
-      <div v-else-if="!creator" class="text-center text-secondary py-5">
-        Creator not found.
-      </div>
-  
-      <!-- Detail header -->
-      <div v-else class="position-relative mb-5">
-        <!-- Banner -->
+
+      <!-- Grid de jocuri -->
+      <div v-else class="row g-3">
         <div
-          v-if="creator.imageBackground"
-          class="detail-banner"
-          :style="{ backgroundImage: `url(${creator.imageBackground})` }"
-        />
-        <!-- Overlay cu avatar și text -->
-        <div class="banner-overlay d-flex align-items-end p-4">
-          <img
-            v-if="creator.image"
-            :src="creator.image"
-            class="detail-avatar me-3"
-            alt="avatar"
-          />
-          <div>
-            <h1 class="mb-1 text-light">{{ creator.name }}</h1>
-            <small class="text-light">{{ creator.gamesCount }} games</small>
-          </div>
-        </div>
-      </div>
-  
-      <!-- Description -->
-      <div
-        v-if="creator && creator.description"
-        class="container text-light mb-5"
-      >
-        <!-- We pull the description straight from the DB -->
-        <p v-html="creator.description"></p>
-      </div>
-  
-      <!-- Games by this creator -->
-      <div v-if="creator" class="container mb-5">
-        <h3 class="text-light mb-3">Games by {{ creator.name }}</h3>
-  
-        <!-- Spinner pentru jocuri -->
-        <div v-if="gamesLoading" class="text-center my-4">
-          <div class="spinner-border text-light" role="status"></div>
-        </div>
-  
-        <!-- Grid de jocuri -->
-        <div v-else class="row g-3">
-          <div
-            v-for="game in creatorGames"
-            :key="game.id"
-            class="col-6 col-md-4 col-lg-3"
-          >
-            <div class="creator-game-card">
-              <img
-                :src="game.backgroundImage"
-                alt="Game cover"
-                class="cover"
-              />
-              <div class="game-info">
-                <h3 class="title">{{ game.name }}</h3>
-              </div>
+          v-for="game in creatorGames"
+          :key="game.id"
+          class="col-6 col-md-4 col-lg-3"
+        >
+          <div class="creator-game-card">
+            <img
+              :src="game.backgroundImage"
+              :alt="$t('game.coverAlt')"
+              class="cover"
+            />
+            <div class="game-info">
+              <h3 class="title">{{ game.name }}</h3>
             </div>
           </div>
-          <p
-            v-if="!gamesLoading && !creatorGames.length"
-            class="text-center text-secondary"
-          >
-            No games found for this creator.
-          </p>
         </div>
+        <p
+          v-if="!gamesLoading && !creatorGames.length"
+          class="text-center text-secondary"
+        >
+          {{ $t('creator.emptyGames') }}
+        </p>
       </div>
-  
-    </BaseLayout>
-  </template>
+    </div>
+
+  </BaseLayout>
+</template>
+
   
   <script>
   import BaseLayout from './BaseLayout.vue';
   import api        from '@/api';
+  import { useI18n } from 'vue-i18n';
   
   export default {
     name: 'CreatorDetails',
     components: { BaseLayout },
     props: { id: [String, Number] },
+    setup() {
+    const { locale } = useI18n({ useScope: 'global' })
+    const setLocale = (lang) => {
+      locale.value = lang
+    }
+    return {
+      currentLocale: locale,
+      setLocale
+    }
+  },
     data() {
       return {
         creator:      null,

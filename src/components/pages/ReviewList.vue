@@ -1,9 +1,8 @@
-<!-- src/components/pages/ReviewList.vue -->
 <template>
   <div class="reviews-section mt-5">
-    <h4 class="text-light mb-4">Reviews</h4>
+    <h4 class="text-light mb-4">{{ $t('reviews.title') }}</h4>
     <div v-if="!reviews.length" class="text-secondary">
-      No reviews yet.
+      {{ $t('reviews.empty') }}
     </div>
 
     <div v-for="rev in reviews" :key="rev.id" class="card review-card mb-4">
@@ -12,10 +11,9 @@
           <i class="bi bi-person-circle"></i>
         </div>
         <div>
-          <!-- now showing displayName -->
           <div class="fw-semibold text-white">{{ rev.displayName }}</div>
           <small class="text-secondary">
-            Posted on {{ new Date(rev.createdAt).toLocaleString() }}
+            {{ $t('profile.review.on') }} {{ new Date(rev.createdAt).toLocaleString() }}
           </small>
         </div>
         <div class="ms-auto">
@@ -23,7 +21,7 @@
             v-if="rev.username === currentUser"
             class="btn btn-sm btn-outline-light me-1"
             @click="startEdit(rev)"
-            title="Edit review"
+            :title="$t('reviews.edit')"
           >
             <i class="bi bi-pencil-fill"></i>
           </button>
@@ -31,7 +29,7 @@
             v-if="isAdmin"
             class="btn btn-sm btn-outline-danger"
             @click="onDelete(rev.id)"
-            title="Delete review"
+            :title="$t('reviews.delete')"
           >
             <i class="bi bi-trash-fill"></i>
           </button>
@@ -56,20 +54,32 @@
       <ReviewForm :gameId="gameId" @posted="onPost" />
     </div>
     <p v-else class="text-secondary">
-      Log in to post a review.
+      {{ $t('reviews.loginPrompt') }}
     </p>
   </div>
 </template>
+
 
 <script>
 import api from '@/api';
 import ReviewForm from './ReviewForm.vue';
 import { isLoggedIn, getUsername, isAdmin } from '@/auth';
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: 'ReviewList',
   components: { ReviewForm },
   props: { gameId: { type: Number, required: true } },
+  setup() {
+    const { locale } = useI18n({ useScope: 'global' })
+    const setLocale = (lang) => {
+      locale.value = lang
+    }
+    return {
+      currentLocale: locale,
+      setLocale
+    }
+  },
   data() {
     return {
       reviews: [],

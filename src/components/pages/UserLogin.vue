@@ -5,26 +5,26 @@
       <form @submit.prevent="submit"
             class="p-4 rounded shadow form-custom"
             style="min-width:320px;">
-        <h3 class="text-light mb-4 text-center">Login</h3>
+        <h3 class="text-light mb-4 text-center">{{ $t('login.title') }}</h3>
 
         <div class="mb-3">
-          <label class="form-label text-light">Username</label>
+          <label class="form-label text-light">{{ $t('login.username') }}</label>
           <input
             v-model="username"
             type="text"
             class="form-control"
-            placeholder="Enter your username"
+            :placeholder="$t('login.username.placeholder')"
             required
           />
         </div>
 
         <div class="mb-3">
-          <label class="form-label text-light">Password</label>
+          <label class="form-label text-light">{{ $t('login.password') }}</label>
           <input
             v-model="password"
             type="password"
             class="form-control"
-            placeholder="••••••••"
+            :placeholder="$t('login.password.placeholder')"
             required
           />
         </div>
@@ -34,12 +34,14 @@
           class="btn btn-primary w-100 mb-2"
           :disabled="loading"
         >
-          {{ loading ? 'Logging in…' : 'Log in' }}
+          {{ loading ? $t('login.submit.loading') : $t('login.submit') }}
         </button>
 
         <p class="mt-2 text-center signup-text">
-          <span class="text-light">Don't have an account yet? </span>
-          <router-link to="/register" class="text-info">Sign up here.</router-link>
+          <span class="text-light">{{ $t('login.signupPrompt') }}</span>
+          <router-link to="/register" class="text-info">
+            {{ $t('login.signupLink') }}
+          </router-link>
         </p>
 
         <div v-if="error" class="text-danger mt-2 text-center">
@@ -50,13 +52,25 @@
   </BaseLayout>
 </template>
 
+
 <script>
 import { login } from '@/auth';
 import BaseLayout from './BaseLayout.vue';
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: 'LoginPage',
   components: { BaseLayout },
+  setup() {
+    const { locale } = useI18n({ useScope: 'global' })
+    const setLocale = (lang) => {
+      locale.value = lang
+    }
+    return {
+      currentLocale: locale,
+      setLocale
+    }
+  },
   data() {
     return {
       username: '',

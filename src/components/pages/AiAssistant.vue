@@ -3,7 +3,7 @@
   <BaseLayout>
     <!-- Hero Section -->
     <section class="ai-hero">
-      <h1 class="ai-hero__title">AI Game Assistant</h1>
+      <h1 class="ai-hero__title">{{ $t('assistant.title') }}</h1>
     </section>
 
     <div class="ai-assistant-container">
@@ -33,7 +33,7 @@
           <input
             v-model="userInput"
             @keyup.enter="sendMessage"
-            placeholder="Ask me about games..."
+            :placeholder="$t('assistant.input.placeholder')"
             class="form-control chat-input"
           />
           <button @click="sendMessage" class="btn send-btn">
@@ -45,16 +45,28 @@
   </BaseLayout>
 </template>
 
+
 <script>
 import BaseLayout from './BaseLayout.vue';
 import api from '@/api';
 import { marked } from 'marked';
 import userIcon from '@/assets/user-icon.png';
 import aiIcon from '@/assets/ai-icon.png';
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: 'AiAssistant',
   components: { BaseLayout },
+  setup() {
+    const { locale } = useI18n({ useScope: 'global' })
+    const setLocale = (lang) => {
+      locale.value = lang
+    }
+    return {
+      currentLocale: locale,
+      setLocale
+    }
+  },
   data() {
     return {
       userInput: '',

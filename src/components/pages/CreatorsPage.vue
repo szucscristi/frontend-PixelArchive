@@ -10,7 +10,7 @@
           @input="onSearchChange"
           type="text"
           class="form-control form-control-lg modern-search mx-auto"
-          placeholder="Search creators..."
+          :placeholder="$t('creators.search.placeholder')"
           style="max-width: 400px;"
         />
       </div>
@@ -33,17 +33,19 @@
               v-if="creator.image"
               :src="creator.image"
               class="avatar rounded-circle"
-              alt="avatar"
+              alt=""
             />
             <div class="card-footer text-center pt-5">
               <h6 class="mb-1 text-white text-truncate">{{ creator.name }}</h6>
-              <small class="text-secondary">{{ creator.gamesCount }} games</small>
+              <small class="text-secondary">
+                {{ creator.gamesCount }} {{ $t('creators.games') }}
+              </small>
             </div>
           </div>
         </router-link>
 
         <p v-if="!loading && !creators.length" class="text-center text-secondary mt-4">
-          No creators found.
+          {{ $t('creators.empty') }}
         </p>
       </div>
 
@@ -55,13 +57,25 @@
   </BaseLayout>
 </template>
 
+
 <script>
 import BaseLayout from './BaseLayout.vue';
 import api        from '@/api';
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: 'CreatorsPage',
   components: { BaseLayout },
+  setup() {
+    const { locale } = useI18n({ useScope: 'global' })
+    const setLocale = (lang) => {
+      locale.value = lang
+    }
+    return {
+      currentLocale: locale,
+      setLocale
+    }
+  },
   data() {
     return {
       creators:   [],
