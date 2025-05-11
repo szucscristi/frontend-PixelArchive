@@ -1,3 +1,4 @@
+<!-- src/components/pages/GameDetails.vue -->
 <template>
   <BaseLayout>
     <!-- Loading spinner -->
@@ -40,7 +41,11 @@
             </span>
           </div>
 
-          <div class="game-description mb-4" v-html="game.description"></div>
+          <!-- Translated description -->
+          <div class="game-description mb-4">
+            <p v-if="translatedDesc !== null" v-html="translatedDesc"></p>
+            <p v-else v-html="game.description"></p>
+          </div>
 
           <h5 class="mb-2">{{ $t('game.platforms') }}</h5>
           <ul class="list-group list-group-flush mb-4">
@@ -80,50 +85,66 @@
   </BaseLayout>
 </template>
 
-
 <script>
-import BaseLayout from './BaseLayout.vue';
-import ReviewList from './ReviewList.vue';
-import api from '@/api';
-import { useI18n } from 'vue-i18n';
+import { ref, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { translateText } from '@/utils/translate'
+import api from '@/api'
+import BaseLayout from './BaseLayout.vue'
+import ReviewList from './ReviewList.vue'
 
 export default {
   name: 'GameDetails',
+  components: { BaseLayout, ReviewList },
   props: {
     id: {
       type: [String, Number],
       required: true
     }
   },
-  components: { BaseLayout, ReviewList },
-  setup() {
+  setup(props) {
     const { locale } = useI18n({ useScope: 'global' })
-    const setLocale = (lang) => {
-      locale.value = lang
+    const game = ref(null)
+    const translatedDesc = ref(null)
+    const loading = ref(true)
+
+    async function fetchGame() {
+      try {
+        const { data } = await api.get(`/games/${props.id}/detail`)
+        game.value = data
+      } catch (e) {
+        console.error('Failed to load game details:', e)
+      } finally {
+        loading.value = false
+      }
     }
-    return {
-      currentLocale: locale,
-      setLocale
+
+    async function updateDescription() {
+      if (!game.value) return
+      if (locale.value === 'ro') {
+        translatedDesc.value = '…translating…'
+        translatedDesc.value = await translateText(game.value.description, 'RO')
+      } else {
+        translatedDesc.value = null
+      }
     }
-  },
-  data() {
+
+    onMounted(async () => {
+      await fetchGame()
+      await updateDescription()
+    })
+
+    watch(locale, () => {
+      updateDescription()
+    })
+
     return {
-      game:    null,
-      loading: true
-    };
-  },
-  async mounted() {
-    try {
-      // folosim api (are prefixul /api)
-      const { data } = await api.get(`/games/${this.id}/detail`);
-      this.game = data;
-    } catch (e) {
-      console.error('Failed to load game details:', e);
-    } finally {
-      this.loading = false;
+      game,
+      translatedDesc,
+      loading
     }
   }
-};
+}
 </script>
 
 <style scoped>

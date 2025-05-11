@@ -133,6 +133,7 @@
   "creator.notFound": "Creator not found.",
   "creator.gamesBy": "Games by {name}",
   "creator.emptyGames": "No games found for this creator.",
+  "creator.gamesCount": "{count} game | {count} games",
 
   "nav.games": "Games",
   "nav.creators": "Creators",
@@ -155,6 +156,7 @@
 
   "creators.games": "games",
   
+
 
   "assistant.title": "AI Game Assistant",
   "assistant.input.placeholder": "Ask me about games..."

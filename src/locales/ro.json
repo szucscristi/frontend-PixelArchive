@@ -133,6 +133,7 @@
   "creator.notFound": "Creator inexistent.",
   "creator.gamesBy": "Jocuri ale lui {name}",
   "creator.emptyGames": "Nu există jocuri pentru acest creator.",
+  "creator.gamesCount": "{count} joc | {count} jocuri",
 
  "nav.games": "Jocuri",
   "nav.creators": "Creatori",
@@ -154,6 +155,7 @@
   "admin.games.existing": "Jocuri existente",
 
   "creators.games": "jocuri",
+
 
   "assistant.title": "AI Game Assistant",
   "assistant.input.placeholder": "Întreabă-mă despre jocuri..."
