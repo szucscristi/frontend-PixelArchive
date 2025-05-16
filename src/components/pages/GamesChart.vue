@@ -1,160 +1,242 @@
 <template>
   <BaseLayout>
     <div class="chart-page container py-5 text-light">
-      <h2 class="mb-4 text-center">{{ $t('chart.title') }}</h2>
 
-      <!-- Spinner while loading -->
-      <div v-if="loading" class="text-center my-5">
-        <div class="spinner-border text-light" role="status"></div>
+      <!-- 1) Releases per year -->
+      <div class="mb-5">
+        <h2 class="mb-4 text-center">{{ $t('chart.title') }}</h2>
+        <div class="chart-wrapper position-relative">
+          <!-- Y-axis label -->
+          <div class="axis-label y-axis">{{ yLabels.releases }}</div>
+          <!-- Canvas -->
+          <canvas v-show="!loading" ref="yearCanvas"></canvas>
+          <!-- X-axis label -->
+          <div class="axis-label x-axis">{{ xLabels.releases }}</div>
+        </div>
+        <div v-if="loading" class="text-center my-5">
+          <div class="spinner-border text-light" role="status"></div>
+        </div>
       </div>
 
-      <!-- Canvas always in DOM, just hidden until loading=false -->
-      <div v-show="!loading">
-        <canvas ref="canvas"></canvas>
-        <p
-          v-if="!loading && (!chartData || !chartData.labels.length)"
-          class="text-center text-secondary mt-4"
-        >
-          {{ $t('chart.noData') }}
-        </p>
+      <!-- 2) Games added to wishlist -->
+      <div class="mb-5">
+        <h2 class="mb-4 text-center">{{ $t('chart.wishlistTitle') }}</h2>
+        <div class="chart-wrapper position-relative">
+          <div class="axis-label y-axis">{{ yLabels.wish }}</div>
+          <canvas v-show="!loading" ref="wishCanvas"></canvas>
+          <div class="axis-label x-axis">{{ xLabels.wish }}</div>
+        </div>
+        <div v-if="loading" class="text-center my-5">
+          <div class="spinner-border text-light" role="status"></div>
+        </div>
       </div>
+
+      <!-- 3) Games completed per game -->
+      <div>
+        <h2 class="mb-4 text-center">{{ $t('chart.completionsTitle') }}</h2>
+        <div class="chart-wrapper position-relative">
+          <div class="axis-label y-axis">{{ yLabels.comp }}</div>
+          <canvas v-show="!loading" ref="compCanvas"></canvas>
+          <div class="axis-label x-axis">{{ xLabels.comp }}</div>
+        </div>
+        <div v-if="loading" class="text-center my-5">
+          <div class="spinner-border text-light" role="status"></div>
+        </div>
+      </div>
+
     </div>
   </BaseLayout>
 </template>
 
-
 <script>
-import BaseLayout from './BaseLayout.vue'
-import { useI18n } from 'vue-i18n';
-
+import { ref, watch } from 'vue';
+import { useI18n }    from 'vue-i18n';
+import BaseLayout     from './BaseLayout.vue';
 import {
-  Chart,
-  Title,
-  BarController,
-  Tooltip,
-  Legend,
-  BarElement,
-  CategoryScale,
-  LinearScale
-} from 'chart.js'
-import api from '@/api'
+  Chart, Title, BarController,
+  Tooltip, Legend, BarElement,
+  CategoryScale, LinearScale
+} from 'chart.js';
+import api from '@/api';
 
-// Register Chart.js components
-Chart.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, BarController)
+Chart.register(
+  Title, Tooltip, Legend,
+  BarElement, CategoryScale,
+  LinearScale, BarController
+);
 
 export default {
   name: 'GamesChart',
   components: { BaseLayout },
+
   setup() {
-    const { locale } = useI18n({ useScope: 'global' })
-    const setLocale = (lang) => {
-      locale.value = lang
-    }
-    return {
-      currentLocale: locale,
-      setLocale
-    }
+    const { t, locale } = useI18n({ useScope: 'global' });
+
+    const xLabels = {
+      releases: ref(t('chart.axis.year')),
+      wish:     ref(t('chart.axis.game')),
+      comp:     ref(t('chart.axis.game')),
+    };
+    const yLabels = {
+      releases: ref(t('chart.axis.count')),
+      wish:     ref(t('chart.axis.count')),
+      comp:     ref(t('chart.axis.count')),
+    };
+
+    watch(locale, () => {
+      xLabels.releases.value = t('chart.axis.year');
+      yLabels.releases.value = t('chart.axis.count');
+      xLabels.wish.value     = t('chart.axis.game');
+      yLabels.wish.value     = t('chart.axis.count');
+      xLabels.comp.value     = t('chart.axis.game');
+      yLabels.comp.value     = t('chart.axis.count');
+    });
+
+    return { xLabels, yLabels, t };
   },
+
   data() {
     return {
-      loading: true,
-      chartInstance: null,
-      chartData: { labels: [], datasets: [] }
-    }
+      loading:    true,
+      yearChart:  null,
+      wishChart:  null,
+      compChart:  null,
+      yearData:   { labels: [], datasets: [] },
+      wishData:   { labels: [], datasets: [] },
+      compData:   { labels: [], datasets: [] }
+    };
   },
+
   async mounted() {
-    // 1) fetch the games
-    let games = []
-    try {
-      const res = await api.get('/games/trending', {
-        params: { size: 299, page: 1 }
-      })
-      games = res.data
-    } catch (e) {
-      console.error('Failed to load games for chart:', e)
-    }
+    // Load all data
+    await Promise.all([
+      this.loadReleases(),
+      this.loadWishlistStats(),
+      this.loadCompletionStats()
+    ]);
+    this.loading = false;
 
-    // 2) bucket by release year
-    const counts = games.reduce((acc, g) => {
-      if (!g.released) return acc
-      const y = new Date(g.released).getFullYear()
-      acc[y] = (acc[y] || 0) + 1
-      return acc
-    }, {})
-    const years = Object.keys(counts)
-      .map(v => +v)
-      .sort((a, b) => a - b)
-    const data = years.map(y => counts[y])
+    // Build charts without internal axis titles
+    this.yearChart = this.buildChart(this.$refs.yearCanvas, this.yearData);
+    this.wishChart = this.buildChart(
+      this.$refs.wishCanvas,
+      this.wishData,
+      { maxBarThickness: 40 },
+      { categoryPercentage: 0.4, barPercentage: 0.6 }
+    );
+    this.compChart = this.buildChart(
+      this.$refs.compCanvas,
+      this.compData,
+      { maxBarThickness: 40 },
+      { categoryPercentage: 0.4, barPercentage: 0.6 }
+    );
+  },
 
-    // store dataset for the “no data” fallback
-    this.chartData = {
-      labels: years,
-      datasets: [{
-        label: 'Games Released',
-        data,
-        backgroundColor: '#e53935aa',
-        borderColor: '#e53935',
-        borderWidth: 1
-      }]
-    }
+  beforeUnmount() {
+    [ this.yearChart, this.wishChart, this.compChart ].forEach(c => c?.destroy());
+  },
 
-    // 3) flip loading to false, then create the chart in nextTick
-    this.loading = false
-    this.$nextTick(() => {
-      // if there’s at least one label, draw the chart
-      if (this.chartData.labels.length) {
-        const ctx = this.$refs.canvas.getContext('2d')
-        this.chartInstance = new Chart(ctx, {
-          type: 'bar',
-          data: this.chartData,
-          options: {
-            // ← disable all animations to avoid post-unmount errors
-            animation: false,
-            responsive: true,
-            scales: {
-              x: {
-                title: {
-                  display: true,
-                  text: 'Year',
-                  color: '#fff',
-                  font: { size: 18, weight: 'bold' }
-                },
-                ticks: {
-                  color: '#fff',
-                  font: { size: 14 }
-                }
-              },
-              y: {
-                title: {
-                  display: true,
-                  text: 'Number of Games',
-                  color: '#fff',
-                  font: { size: 18, weight: 'bold' }
-                },
-                beginAtZero: true,
-                ticks: {
-                  precision: 0,
-                  color: '#fff',
-                  font: { size: 14 }
-                }
-              }
+  methods: {
+    buildChart(canvas, data, datasetOpts = {}, scaleOpts = {}) {
+      const ctx = canvas.getContext('2d');
+      const labels   = Array.from(data.labels);
+      const datasets = data.datasets.map(ds => ({
+        data:            Array.from(ds.data),
+        backgroundColor: ds.backgroundColor,
+        borderColor:     ds.borderColor,
+        borderWidth:     ds.borderWidth,
+        ...datasetOpts
+      }));
+
+      return new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          aspectRatio: 3,
+          animation: false,
+          plugins: {
+            legend: { display: false },
+            title:  { display: false }
+          },
+          scales: {
+            x: {
+              title: { display: false },
+              ticks: { color: '#fff', font: { size: 12 } },
+              categoryPercentage: scaleOpts.categoryPercentage ?? 0.8,
+              barPercentage:      scaleOpts.barPercentage      ?? 0.9
             },
-            plugins: {
-              legend: { display: false },
-              title: { display: false }
+            y: {
+              title:       { display: false },
+              beginAtZero: true,
+              ticks:       { color: '#fff', font: { size: 12 }, precision: 0 }
             }
           }
-        })
+        }
+      });
+    },
+
+    async loadReleases() {
+      let games = [];
+      try {
+        const res = await api.get('/games/trending', { params: { size:1000, page:1 } });
+        games = res.data;
+      } catch (e) {
+        console.error('Failed to load trending games:', e);
       }
-    })
-  },
-  beforeUnmount() {
-    if (this.chartInstance) {
-      this.chartInstance.destroy()
-      this.chartInstance = null
+      const counts = games.reduce((acc, g) => {
+        if (!g.released) return acc;
+        const yr = new Date(g.released).getFullYear();
+        acc[yr] = (acc[yr]||0) + 1;
+        return acc;
+      }, {});
+      const years = Object.keys(counts).map(Number).sort((a,b)=>a-b);
+      this.yearData = {
+        labels: years,
+        datasets: [{
+          data: years.map(y=>counts[y]),
+          backgroundColor:'#e53935aa',
+          borderColor:    '#e53935',
+          borderWidth:    1
+        }]
+      };
+    },
+
+    async loadWishlistStats() {
+      try {
+        const res = await api.get('/stats/wishlist-by-game');
+        this.wishData = {
+          labels: res.data.map(s=>s.gameName),
+          datasets: [{
+            data: res.data.map(s=>s.count),
+            backgroundColor:'#1976D2aa',
+            borderColor:    '#1976D2',
+            borderWidth:    1
+          }]
+        };
+      } catch (e) {
+        console.error('Failed to load wishlist stats:', e);
+      }
+    },
+
+    async loadCompletionStats() {
+      try {
+        const res = await api.get('/stats/completed-by-game');
+        this.compData = {
+          labels: res.data.map(s=>s.gameName),
+          datasets: [{
+            data: res.data.map(s=>s.count),
+            backgroundColor:'#43A047aa',
+            borderColor:    '#43A047',
+            borderWidth:    1
+          }]
+        };
+      } catch (e) {
+        console.error('Failed to load completion stats:', e);
+      }
     }
   }
-}
+};
 </script>
 
 <style scoped>
@@ -162,12 +244,35 @@ export default {
   min-height: 70vh;
 }
 
-/* Make canvas full-width and taller */
+/* container for each chart to position axis labels */
+.chart-wrapper {
+  position: relative;
+}
+
+/* Y-axis label, rotated */
+.axis-label.y-axis {
+  position: absolute;
+  left: -1.5rem;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: center;
+  color: #bbb;
+  font-size: 0.9rem;
+}
+
+/* X-axis label, centered under canvas */
+.axis-label.x-axis {
+  text-align: center;
+  margin-top: 0.5rem;
+  color: #bbb;
+  font-size: 0.9rem;
+}
+
 .chart-page canvas {
-  width: 100% !important;
-  max-width: 1200px;
-  height: 600px !important;
-  margin: 0 auto;
   display: block;
+  width: 100%;
+  height: auto;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 </style>

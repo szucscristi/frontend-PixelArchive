@@ -37,8 +37,8 @@
   "profile.removeFromCompleted": "Elimină din finalizate",
 
   "admin.title": "Panou Administrare",
-  "admin.tab.games": "Gestionare Jocuri",
-  "admin.tab.users": "Gestionare Utilizatori",
+  "admin.tab.games": "Gestionare jocuri",
+  "admin.tab.users": "Gestionare utilizatori",
 
   "admin.games.form.id": "ID",
   "admin.games.form.name": "Nume",
@@ -95,7 +95,7 @@
   "login.password.placeholder": "••••••••",
   "login.submit": "Autentifică-te",
   "login.submit.loading": "Se autentifică…",
-  "login.signupPrompt": "Nu ai cont încă?",
+  "login.signupPrompt": "Nu ai cont încă? ",
   "login.signupLink": "Înregistrează-te aici.",
 
   "search.games.placeholder": "Caută în arhivă…",
@@ -117,8 +117,6 @@
   "reviews.cancel": "Anulează",
   "reviews.loginPrompt": "Autentifică-te pentru a posta o recenzie.",
 
-  "chart.title": "Jocuri lansate pe ani",
-  "chart.noData": "Nu există date disponibile.",
 
   "game.notFound": "Joc inexistent.",
   "game.released": "Lansat: {date}",
@@ -157,7 +155,21 @@
   "creators.games": "jocuri",
 
 
-  "assistant.title": "AI Game Assistant",
-  "assistant.input.placeholder": "Întreabă-mă despre jocuri..."
+  "assistant.title": "Asistent AI pentru jocuri",
+  "assistant.input.placeholder": "Întreabă-mă despre jocuri...",
+
+
+
+  "chart.title": "Jocuri lansate pe an",
+  "chart.noData": "Nu există date disponibile.",
+  "chart.axis.year": "An",
+  "chart.axis.month": "Lună",
+  "chart.axis.game": "Joc",
+  "chart.axis.count": "Număr",
+  "chart.datasets.releases": "Jocuri Lansate",
+  "chart.datasets.wishlist": "Adăugări în Listă",
+  "chart.datasets.completions": "Finalizări",
+  "chart.wishlistTitle": "Jocuri adăugate în lista de dorințe",
+  "chart.completionsTitle": "Jocuri completate"
 
 }

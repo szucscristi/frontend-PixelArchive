@@ -44,4 +44,11 @@ api.getMyReviews   = username      => api.get(`/users/${username}/reviews`)
 // Game details (reuse)
 api.getGameDetails = gameId        => api.get(`/games/${gameId}`)
 
+// stats
+
+
+api.getWishlistStats   = () => api.get('/stats/wishlist-by-game');
+api.getCompletionStats = () => api.get('/stats/completed-by-game');
+
+
 export default api

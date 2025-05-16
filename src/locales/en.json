@@ -4,8 +4,8 @@
   "logout": "Logout",
   "login": "Login",
   "signup": "Sign Up",
-  "manageGames": "Manage Games",
-  "manageUsers": "Manage Users",
+  "manageGames": "Manage games",
+  "manageUsers": "Manage users",
 
   "register.title": "Sign Up",
   "register.displayName": "Display Name",
@@ -37,8 +37,8 @@
   "profile.removeFromCompleted": "Remove from Completed",
 
   "admin.title": "Admin Panel",
-  "admin.tab.games": "Manage Games",
-  "admin.tab.users": "Manage Users",
+  "admin.tab.games": "Manage games",
+  "admin.tab.users": "Manage users",
 
   "admin.games.form.id": "ID",
   "admin.games.form.name": "Name",
@@ -95,7 +95,7 @@
   "login.password.placeholder": "••••••••",
   "login.submit": "Log in",
   "login.submit.loading": "Logging in…",
-  "login.signupPrompt": "Don't have an account yet?",
+  "login.signupPrompt": "Don't have an account yet? ",
   "login.signupLink": "Sign up here.",
 
   "search.games.placeholder": "Search the archive…",
@@ -117,8 +117,6 @@
   "reviews.cancel": "Cancel",
   "reviews.loginPrompt": "Log in to post a review.",
 
-  "chart.title": "Games released per year",
-  "chart.noData": "No release data available.",
 
   "game.notFound": "Game not found.",
   "game.released": "Released: {date}",
@@ -159,5 +157,21 @@
 
 
   "assistant.title": "AI Game Assistant",
-  "assistant.input.placeholder": "Ask me about games..."
+  "assistant.input.placeholder": "Ask me about games...",
+
+
+
+
+
+  "chart.title": "Games released per year",
+  "chart.noData": "No release data available.",
+  "chart.axis.year": "Year",
+  "chart.axis.month": "Month",
+  "chart.axis.game": "Game",
+  "chart.axis.count": "Count",
+  "chart.datasets.releases": "Games Released",
+  "chart.datasets.wishlist": "Times Added to Wishlist",
+  "chart.datasets.completions": "Completions",
+  "chart.wishlistTitle": "Games added to wishlist",
+  "chart.completionsTitle": "Completed Games"
 }
